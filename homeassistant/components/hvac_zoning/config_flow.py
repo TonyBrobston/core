@@ -100,33 +100,31 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         await areaRegistry.async_load()
         area_entries = list(areaRegistry.async_list_areas())
 
-        # print(f"area_entries: {area_entries}")
-
-        # entityRegistry = EntityRegistry(self.hass)
-        # await entityRegistry.async_load()
-        # bedroom_entities = async_entries_for_area(entityRegistry, "bedroom")
-        # bedroom_entities = await get_entities_for_area(self, "bedroom")
-        # print(f"bedroom_entities: {bedroom_entities}")
-
-        # print([async get_entities_for_area(self, entry.id) for entry in area_entries])
-
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(entry.id): vol.In(
-                        filter_entities_to_device_class_and_map_to_entity_names(
-                            await get_entities_for_area(self, entry.id), "temperature"
+                    **{
+                        vol.Required(entry.id): vol.In(
+                            filter_entities_to_device_class_and_map_to_entity_names(
+                                await get_entities_for_area(self, entry.id),
+                                "temperature",
+                            )
                         )
-                    )
-                    for entry in area_entries
-                    # vol.Required("foo"): vol.In(["foo", "bar"]),
-                    # vol.Optional("derp"): SelectSelector(
-                    #     SelectSelectorConfig(
-                    #         options=["text", "headers"],
-                    #         multiple=True,
+                        for entry in area_entries
+                    },
+                    # **{
+                    #     vol.Optional(entry.id): SelectSelector(
+                    #         SelectSelectorConfig(
+                    #             options=filter_entities_to_device_class_and_map_to_entity_names(
+                    #                 await get_entities_for_area(self, entry.id),
+                    #                 "damper",
+                    #             ),
+                    #             multiple=True,
+                    #         )
                     #     )
-                    # ),
+                    #     for entry in area_entries
+                    # },
                 }
             ),
             errors=errors,
