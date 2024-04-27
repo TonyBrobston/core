@@ -234,6 +234,7 @@ FLOWS = {
         "hunterdouglas_powerview",
         "husqvarna_automower",
         "huum",
+        "hvac_zoning",
         "hvv_departures",
         "hydrawise",
         "hyperion",
