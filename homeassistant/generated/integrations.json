@@ -2654,6 +2654,12 @@
       "config_flow": true,
       "iot_class": "local_polling"
     },
+    "hvac_zoning_stubs": {
+      "name": "HVAC Zoning Stubs",
+      "integration_type": "hub",
+      "config_flow": true,
+      "iot_class": "local_polling"
+    },
     "hvv_departures": {
       "name": "HVV Departures",
       "integration_type": "hub",
