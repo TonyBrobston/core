@@ -2,7 +2,7 @@
 
 
 from homeassistant.components.hvac_zoning.config_flow import (
-    map_entities_to_entity_names,
+    filter_entities_to_device_class_and_map_to_entity_names,
 )
 from homeassistant.helpers.entity_registry import RegistryEntry
 
@@ -141,8 +141,9 @@ from homeassistant.helpers.entity_registry import RegistryEntry
 #     assert len(mock_setup_entry.mock_calls) == 1
 
 
-def test_map_entities_to_entity_names():
+def test_filter_entities_to_device_class_and_map_to_entity_names():
     """Test map entities to entity names."""
+    device_class = "damper"
     entities = [
         RegistryEntry(
             entity_id="sensor.basement_temperature",
@@ -178,10 +179,11 @@ def test_map_entities_to_entity_names():
         ),
     ]
 
-    entity_names = map_entities_to_entity_names(entities)
+    entity_names = filter_entities_to_device_class_and_map_to_entity_names(
+        entities, device_class
+    )
 
     expected_entity_names = [
-        "Basement Temperature",
         "Basement West Vent",
         "Basement Northeast Vent",
         "Basement Southeast Vent",

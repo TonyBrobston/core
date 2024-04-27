@@ -116,8 +116,8 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(entry.id): vol.In(
-                        map_entities_to_entity_names(
-                            await get_entities_for_area(self, entry.id)
+                        filter_entities_to_device_class_and_map_to_entity_names(
+                            await get_entities_for_area(self, entry.id), "temperature"
                         )
                     )
                     for entry in area_entries
@@ -142,6 +142,10 @@ class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
 
 
-def map_entities_to_entity_names(entities):
+def filter_entities_to_device_class_and_map_to_entity_names(entities, device_class):
     """Map entities to entity names."""
-    return [entity.original_name for entity in entities]
+    return [
+        entity.original_name
+        for entity in entities
+        if entity.original_device_class == device_class
+    ]
