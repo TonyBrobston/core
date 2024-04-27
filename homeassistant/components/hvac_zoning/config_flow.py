@@ -8,7 +8,6 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.area_registry import AreaRegistry
@@ -47,10 +46,10 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     #     your_validate_func, data[CONF_USERNAME], data[CONF_PASSWORD]
     # )
 
-    hub = PlaceholderHub(data[CONF_HOST])
+    # hub = PlaceholderHub(data[CONF_HOST])
 
-    if not await hub.authenticate(data[CONF_USERNAME], data[CONF_PASSWORD]):
-        raise InvalidAuth
+    # if not await hub.authenticate(data[CONF_USERNAME], data[CONF_PASSWORD]):
+    #     raise InvalidAuth
 
     # If you cannot connect:
     # throw CannotConnect
