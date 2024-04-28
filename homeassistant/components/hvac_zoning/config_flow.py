@@ -32,6 +32,41 @@ async def get_entities_original_name_for_area(self, area_id):
     return [entity.original_name for entity in entities]
 
 
+def filter_entities_to_device_class_and_map_to_entity_names(entities, device_class):
+    """Map entities to entity names."""
+    return [
+        {"value": entity.entity_id, "label": entity.original_name}
+        for entity in entities
+        if device_class
+        in (entity.original_device_class, entity.entity_id.split(".")[0])
+    ]
+
+
+async def new_method(self, device_class, multiple):
+    """Build schema."""
+    return vol.Schema(
+        {
+            vol.Optional(area.id): SelectSelector(
+                SelectSelectorConfig(
+                    options=filter_entities_to_device_class_and_map_to_entity_names(
+                        await get_entities_for_area(self, area.id),
+                        device_class,
+                    ),
+                    multiple=multiple,
+                )
+            )
+            for area in await get_areas(self)
+        },
+    )
+
+
+async def get_areas(self):
+    """Load and list areas."""
+    areaRegistry = AreaRegistry(self.hass)
+    await areaRegistry.async_load()
+    return list(areaRegistry.async_list_areas())
+
+
 class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HVAC Zoning."""
 
@@ -51,20 +86,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(area.id): SelectSelector(
-                        SelectSelectorConfig(
-                            options=filter_entities_to_device_class_and_map_to_entity_names(
-                                await get_entities_for_area(self, area.id),
-                                CoverDeviceClass.DAMPER,
-                            ),
-                            multiple=True,
-                        )
-                    )
-                    for area in await self.get_areas()
-                },
-            ),
+            data_schema=await new_method(self, CoverDeviceClass.DAMPER, True),
             errors=errors,
         )
 
@@ -84,19 +106,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="second",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(area.id): SelectSelector(
-                        SelectSelectorConfig(
-                            options=filter_entities_to_device_class_and_map_to_entity_names(
-                                await get_entities_for_area(self, area.id),
-                                SensorDeviceClass.TEMPERATURE,
-                            ),
-                        )
-                    )
-                    for area in await self.get_areas()
-                },
-            ),
+            data_schema=await new_method(self, SensorDeviceClass.TEMPERATURE, False),
             errors=errors,
         )
 
@@ -119,34 +129,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="third",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(area.id): SelectSelector(
-                        SelectSelectorConfig(
-                            options=filter_entities_to_device_class_and_map_to_entity_names(
-                                await get_entities_for_area(self, area.id),
-                                "climate",
-                            ),
-                        )
-                    )
-                    for area in await self.get_areas()
-                },
-            ),
+            data_schema=await new_method(self, "climate", False),
             errors=errors,
         )
-
-    async def get_areas(self):
-        """Load and list areas."""
-        areaRegistry = AreaRegistry(self.hass)
-        await areaRegistry.async_load()
-        return list(areaRegistry.async_list_areas())
-
-
-def filter_entities_to_device_class_and_map_to_entity_names(entities, device_class):
-    """Map entities to entity names."""
-    return [
-        {"value": entity.entity_id, "label": entity.original_name}
-        for entity in entities
-        if device_class
-        in (entity.original_device_class, entity.entity_id.split(".")[0])
-    ]
