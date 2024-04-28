@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.area_registry import AreaRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry, async_entries_for_area
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 from .const import DOMAIN
 
@@ -77,6 +78,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HVAC Zoning."""
 
     VERSION = 1
+    init_info: dict[str, Any] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -84,17 +86,20 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            try:
-                info = await validate_input(self.hass, user_input)
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except InvalidAuth:
-                errors["base"] = "invalid_auth"
-            except Exception:  # pylint: disable=broad-except
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
-            else:
-                return self.async_create_entry(title=info["title"], data=user_input)
+            # print(f"user_input: {user_input}")
+            self.init_info = user_input
+            return await self.async_step_foo()
+            # try:
+            #     info = await validate_input(self.hass, user_input)
+            # except CannotConnect:
+            #     errors["base"] = "cannot_connect"
+            # except InvalidAuth:
+            #     errors["base"] = "invalid_auth"
+            # except Exception:  # pylint: disable=broad-except
+            #     _LOGGER.exception("Unexpected exception")
+            #     errors["base"] = "unknown"
+            # else:
+            #     return self.async_create_entry(title=info["title"], data=user_input)
 
         areaRegistry = AreaRegistry(self.hass)
         await areaRegistry.async_load()
@@ -104,28 +109,56 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    **{
-                        vol.Required(entry.id): vol.In(
-                            filter_entities_to_device_class_and_map_to_entity_names(
+                    vol.Optional(entry.id): SelectSelector(
+                        SelectSelectorConfig(
+                            options=filter_entities_to_device_class_and_map_to_entity_names(
                                 await get_entities_for_area(self, entry.id),
-                                "temperature",
-                            )
+                                "damper",
+                            ),
+                            multiple=True,
                         )
-                        for entry in area_entries
-                    },
-                    # **{
-                    #     vol.Optional(entry.id): SelectSelector(
-                    #         SelectSelectorConfig(
-                    #             options=filter_entities_to_device_class_and_map_to_entity_names(
-                    #                 await get_entities_for_area(self, entry.id),
-                    #                 "damper",
-                    #             ),
-                    #             multiple=True,
-                    #         )
-                    #     )
-                    #     for entry in area_entries
-                    # },
-                }
+                    )
+                    for entry in area_entries
+                },
+            ),
+            errors=errors,
+        )
+
+    async def async_step_foo(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle the initial step."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            # print(f"user_input: {user_input}")
+            # try:
+            #     info = await validate_input(self.hass, user_input)
+            # except CannotConnect:
+            #     errors["base"] = "cannot_connect"
+            # except InvalidAuth:
+            #     errors["base"] = "invalid_auth"
+            # except Exception:  # pylint: disable=broad-except
+            #     _LOGGER.exception("Unexpected exception")
+            #     errors["base"] = "unknown"
+            # else:
+            return self.async_create_entry(title="HVAC Zoning", data=user_input)
+
+        areaRegistry = AreaRegistry(self.hass)
+        await areaRegistry.async_load()
+        area_entries = list(areaRegistry.async_list_areas())
+
+        return self.async_show_form(
+            step_id="foo",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(entry.id): vol.In(
+                        filter_entities_to_device_class_and_map_to_entity_names(
+                            await get_entities_for_area(self, entry.id),
+                            "temperature",
+                        )
+                    )
+                    for entry in area_entries
+                },
             ),
             errors=errors,
         )
