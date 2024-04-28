@@ -10,8 +10,6 @@ import voluptuous as vol
 from homeassistant.components.cover import CoverDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.area_registry import AreaRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry, async_entries_for_area
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
@@ -34,33 +32,6 @@ class PlaceholderHub:
     async def authenticate(self, username: str, password: str) -> bool:
         """Test if we can authenticate with the host."""
         return True
-
-
-async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
-    """Validate the user input allows us to connect.
-
-    Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
-    """
-    # TO DO validate the data can be used to set up a connection.
-
-    # If your PyPI package is not built with async, pass your methods
-    # to the executor:
-    # await hass.async_add_executor_job(
-    #     your_validate_func, data[CONF_USERNAME], data[CONF_PASSWORD]
-    # )
-
-    # hub = PlaceholderHub(data[CONF_HOST])
-
-    # if not await hub.authenticate(data[CONF_USERNAME], data[CONF_PASSWORD]):
-    #     raise InvalidAuth
-
-    # If you cannot connect:
-    # throw CannotConnect
-    # If the authentication is wrong:
-    # InvalidAuth
-
-    # Return info that you want to store in the config entry.
-    return {"title": "Name of the device"}
 
 
 async def get_entities_for_area(self, area_id):
@@ -90,19 +61,10 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         # print(f"user_input1: {user_input}")
         # print(f"init_info1: {self.init_info}")
         if user_input is not None:
-            # try:
-            #     info = await validate_input(self.hass, user_input)
-            # except Exception:  # pylint: disable=broad-except
-            #     _LOGGER.exception("Unexpected exception")
-            #     errors["base"] = "unknown"
-            # else:
-            #     return self.async_create_entry(title=info["title"], data=user_input)
             self.init_info = {"damper": user_input}
             return await self.async_step_second()
 
-        areaRegistry = AreaRegistry(self.hass)
-        await areaRegistry.async_load()
-        area_entries = list(areaRegistry.async_list_areas())
+        areas = await self.get_areas()
 
         return self.async_show_form(
             step_id="user",
@@ -117,7 +79,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                             multiple=True,
                         )
                     )
-                    for entry in area_entries
+                    for entry in areas
                 },
             ),
             errors=errors,
@@ -131,21 +93,13 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         # print(f"user_input2: {user_input}")
         # print(f"init_info2: {self.init_info}")
         if user_input is not None:
-            # try:
-            #     info = await validate_input(self.hass, user_input)
-            # except Exception:  # pylint: disable=broad-except
-            #     _LOGGER.exception("Unexpected exception")
-            #     errors["base"] = "unknown"
-            # else:
             self.init_info = {
                 **self.init_info,
                 "temperature": user_input,
             }
             return await self.async_step_third()
 
-        areaRegistry = AreaRegistry(self.hass)
-        await areaRegistry.async_load()
-        area_entries = list(areaRegistry.async_list_areas())
+        areas = await self.get_areas()
 
         return self.async_show_form(
             step_id="second",
@@ -159,7 +113,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                             ),
                         )
                     )
-                    for entry in area_entries
+                    for entry in areas
                 },
             ),
             errors=errors,
@@ -173,12 +127,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         # print(f"user_input3: {user_input}")
         # print(f"init_info3: {self.init_info}")
         if user_input is not None:
-            # try:
-            #     info = await validate_input(self.hass, user_input)
-            # except Exception:  # pylint: disable=broad-except
-            #     _LOGGER.exception("Unexpected exception")
-            #     errors["base"] = "unknown"
-            # else:
             self.init_info = user_input
             return self.async_create_entry(
                 title="HVAC Zoning",
@@ -188,9 +136,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                 },
             )
 
-        areaRegistry = AreaRegistry(self.hass)
-        await areaRegistry.async_load()
-        area_entries = list(areaRegistry.async_list_areas())
+        areas = await self.get_areas()
 
         return self.async_show_form(
             step_id="third",
@@ -204,19 +150,17 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                             ),
                         )
                     )
-                    for entry in area_entries
+                    for entry in areas
                 },
             ),
             errors=errors,
         )
 
-
-class CannotConnect(HomeAssistantError):
-    """Error to indicate we cannot connect."""
-
-
-class InvalidAuth(HomeAssistantError):
-    """Error to indicate there is invalid auth."""
+    async def get_areas(self):
+        """Load and list areas."""
+        areaRegistry = AreaRegistry(self.hass)
+        await areaRegistry.async_load()
+        return list(areaRegistry.async_list_areas())
 
 
 def filter_entities_to_device_class_and_map_to_entity_names(entities, device_class):
