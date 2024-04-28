@@ -86,15 +86,10 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            # print(f"user_input: {user_input}")
             self.init_info = user_input
-            return await self.async_step_foo()
+            return await self.async_step_second()
             # try:
             #     info = await validate_input(self.hass, user_input)
-            # except CannotConnect:
-            #     errors["base"] = "cannot_connect"
-            # except InvalidAuth:
-            #     errors["base"] = "invalid_auth"
             # except Exception:  # pylint: disable=broad-except
             #     _LOGGER.exception("Unexpected exception")
             #     errors["base"] = "unknown"
@@ -124,7 +119,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_foo(
+    async def async_step_second(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
@@ -133,10 +128,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             # print(f"user_input: {user_input}")
             # try:
             #     info = await validate_input(self.hass, user_input)
-            # except CannotConnect:
-            #     errors["base"] = "cannot_connect"
-            # except InvalidAuth:
-            #     errors["base"] = "invalid_auth"
             # except Exception:  # pylint: disable=broad-except
             #     _LOGGER.exception("Unexpected exception")
             #     errors["base"] = "unknown"
@@ -148,7 +139,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         area_entries = list(areaRegistry.async_list_areas())
 
         return self.async_show_form(
-            step_id="foo",
+            step_id="second",
             data_schema=vol.Schema(
                 {
                     vol.Required(entry.id): vol.In(
