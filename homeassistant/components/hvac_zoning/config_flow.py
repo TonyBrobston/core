@@ -88,6 +88,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         # print(f"user_input1: {user_input}")
+        # print(f"init_info1: {self.init_info}")
         if user_input is not None:
             # try:
             #     info = await validate_input(self.hass, user_input)
@@ -96,7 +97,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             #     errors["base"] = "unknown"
             # else:
             #     return self.async_create_entry(title=info["title"], data=user_input)
-            self.init_info = user_input
+            self.init_info = {"damper": user_input}
             return await self.async_step_second()
 
         areaRegistry = AreaRegistry(self.hass)
@@ -128,15 +129,18 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         # print(f"user_input2: {user_input}")
+        # print(f"init_info2: {self.init_info}")
         if user_input is not None:
-            # print(f"user_input: {user_input}")
             # try:
             #     info = await validate_input(self.hass, user_input)
             # except Exception:  # pylint: disable=broad-except
             #     _LOGGER.exception("Unexpected exception")
             #     errors["base"] = "unknown"
             # else:
-            self.init_info = user_input
+            self.init_info = {
+                **self.init_info,
+                "temperature": user_input,
+            }
             return await self.async_step_third()
 
         areaRegistry = AreaRegistry(self.hass)
@@ -147,10 +151,12 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="second",
             data_schema=vol.Schema(
                 {
-                    vol.Required(entry.id): vol.In(
-                        filter_entities_to_device_class_and_map_to_entity_names(
-                            await get_entities_for_area(self, entry.id),
-                            SensorDeviceClass.TEMPERATURE,
+                    vol.Optional(entry.id): SelectSelector(
+                        SelectSelectorConfig(
+                            options=filter_entities_to_device_class_and_map_to_entity_names(
+                                await get_entities_for_area(self, entry.id),
+                                SensorDeviceClass.TEMPERATURE,
+                            ),
                         )
                     )
                     for entry in area_entries
@@ -165,8 +171,8 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         # print(f"user_input3: {user_input}")
+        # print(f"init_info3: {self.init_info}")
         if user_input is not None:
-            # print(f"user_input: {user_input}")
             # try:
             #     info = await validate_input(self.hass, user_input)
             # except Exception:  # pylint: disable=broad-except
@@ -174,22 +180,28 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             #     errors["base"] = "unknown"
             # else:
             self.init_info = user_input
-            return self.async_create_entry(title="HVAC Zoning", data=user_input)
+            return self.async_create_entry(
+                title="HVAC Zoning",
+                data={
+                    **self.init_info,
+                    "climate": user_input,
+                },
+            )
 
         areaRegistry = AreaRegistry(self.hass)
         await areaRegistry.async_load()
         area_entries = list(areaRegistry.async_list_areas())
 
-        # print([await get_entities_for_area(self, entry.id) for entry in area_entries])
-
         return self.async_show_form(
             step_id="third",
             data_schema=vol.Schema(
                 {
-                    vol.Required(entry.id): vol.In(
-                        filter_entities_to_device_class_and_map_to_entity_names(
-                            await get_entities_for_area(self, entry.id),
-                            "climate",
+                    vol.Optional(entry.id): SelectSelector(
+                        SelectSelectorConfig(
+                            options=filter_entities_to_device_class_and_map_to_entity_names(
+                                await get_entities_for_area(self, entry.id),
+                                "climate",
+                            ),
                         )
                     )
                     for entry in area_entries
@@ -210,7 +222,7 @@ class InvalidAuth(HomeAssistantError):
 def filter_entities_to_device_class_and_map_to_entity_names(entities, device_class):
     """Map entities to entity names."""
     return [
-        entity.original_name
+        {"value": entity.entity_id, "label": entity.original_name}
         for entity in entities
         if device_class
         in (entity.original_device_class, entity.entity_id.split(".")[0])

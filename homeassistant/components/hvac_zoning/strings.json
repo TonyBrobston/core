@@ -3,6 +3,7 @@
     "step": {
       "user": {
         "data": {
+          "theromstat": "Thermostat",
           "basement": "Basement",
           "main_floor": "Main Floor",
           "office": "Office",

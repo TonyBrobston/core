@@ -184,9 +184,9 @@ def test_filter_entities_to_device_class_and_map_to_entity_names():
     )
 
     expected_entity_names = [
-        "Basement West Vent",
-        "Basement Northeast Vent",
-        "Basement Southeast Vent",
+        {"label": "Basement West Vent", "value": "cover.basement_west_vent"},
+        {"label": "Basement Northeast Vent", "value": "cover.basement_northeast_vent"},
+        {"label": "Basement Southeast Vent", "value": "cover.basement_southeast_vent"},
     ]
     assert entity_names == expected_entity_names
 
@@ -217,5 +217,7 @@ def test_filter_entities_to_device_class_and_map_to_entity_names_climate():
         entities, device_class
     )
 
-    expected_entity_names = ["Living Room Thermostat"]
+    expected_entity_names = [
+        {"value": "climate.living_room_thermostat", "label": "Living Room Thermostat"}
+    ]
     assert entity_names == expected_entity_names
