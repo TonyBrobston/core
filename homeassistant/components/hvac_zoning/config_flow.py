@@ -86,8 +86,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.init_info = user_input
-            return await self.async_step_second()
             # try:
             #     info = await validate_input(self.hass, user_input)
             # except Exception:  # pylint: disable=broad-except
@@ -95,6 +93,8 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             #     errors["base"] = "unknown"
             # else:
             #     return self.async_create_entry(title=info["title"], data=user_input)
+            self.init_info = user_input
+            return await self.async_step_second()
 
         areaRegistry = AreaRegistry(self.hass)
         await areaRegistry.async_load()
@@ -132,7 +132,8 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             #     _LOGGER.exception("Unexpected exception")
             #     errors["base"] = "unknown"
             # else:
-            return self.async_create_entry(title="HVAC Zoning", data=user_input)
+            self.init_info = user_input
+            return await self.async_step_third()
 
         areaRegistry = AreaRegistry(self.hass)
         await areaRegistry.async_load()
@@ -146,6 +147,41 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                         filter_entities_to_device_class_and_map_to_entity_names(
                             await get_entities_for_area(self, entry.id),
                             "temperature",
+                        )
+                    )
+                    for entry in area_entries
+                },
+            ),
+            errors=errors,
+        )
+
+    async def async_step_third(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle the initial step."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            # print(f"user_input: {user_input}")
+            # try:
+            #     info = await validate_input(self.hass, user_input)
+            # except Exception:  # pylint: disable=broad-except
+            #     _LOGGER.exception("Unexpected exception")
+            #     errors["base"] = "unknown"
+            # else:
+            return self.async_create_entry(title="HVAC Zoning", data=user_input)
+
+        areaRegistry = AreaRegistry(self.hass)
+        await areaRegistry.async_load()
+        area_entries = list(areaRegistry.async_list_areas())
+
+        return self.async_show_form(
+            step_id="third",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(entry.id): vol.In(
+                        filter_entities_to_device_class_and_map_to_entity_names(
+                            await get_entities_for_area(self, entry.id),
+                            "climate",
                         )
                     )
                     for entry in area_entries

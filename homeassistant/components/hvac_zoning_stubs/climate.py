@@ -17,8 +17,11 @@ class Thermostat(ClimateEntity):
         self._attr_unique_id = name
         self._attr_name = name
         self._attr_hvac_mode = HVACMode.HEAT
-        self._attr_hvac_modes = [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
+        self._attr_hvac_modes = [HVACMode.HEAT]
         self._attr_temperature_unit = UnitOfTemperature.FAHRENHEIT
+        self._attr_current_temperature = 69
+        self._attr_target_temperature = 75
+        self._attr_original_device_class = "climate"
 
 
 async def async_setup_entry(
