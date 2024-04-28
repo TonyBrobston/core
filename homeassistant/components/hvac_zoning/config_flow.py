@@ -32,7 +32,9 @@ async def get_entities_original_name_for_area(self, area_id):
     return [entity.original_name for entity in entities]
 
 
-def filter_entities_to_device_class_and_map_to_entity_names(entities, device_class):
+def filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
+    entities, device_class
+):
     """Map entities to entity names."""
     return [
         {"value": entity.entity_id, "label": entity.original_name}
@@ -42,22 +44,52 @@ def filter_entities_to_device_class_and_map_to_entity_names(entities, device_cla
     ]
 
 
+def filter_entities_to_device_class_and_map_to_entity_ids(entities, device_class):
+    """Map entities to entity names."""
+    return [
+        entity.entity_id
+        for entity in entities
+        if device_class
+        in (entity.original_device_class, entity.entity_id.split(".")[0])
+    ]
+
+
 async def build_schema(self, device_class, multiple):
     """Build schema."""
+    areas = await get_areas(self)
     return vol.Schema(
         {
-            vol.Optional(area.id): SelectSelector(
+            vol.Optional(
+                area.id, default=await get_defaults(self, area, device_class, multiple)
+            ): SelectSelector(
                 SelectSelectorConfig(
-                    options=filter_entities_to_device_class_and_map_to_entity_names(
-                        await get_entities_for_area(self, area.id),
-                        device_class,
-                    ),
+                    options=await get_options(self, area, device_class),
                     multiple=multiple,
                 )
             )
-            for area in await get_areas(self)
+            for area in areas
+            if len(await get_options(self, area, device_class)) != 0
         },
     )
+
+
+async def get_options(self, area, device_class):
+    """Get options for form."""
+    return filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
+        await get_entities_for_area(self, area.id),
+        device_class,
+    )
+
+
+async def get_defaults(self, area, device_class, multiple):
+    """Get defaults for form."""
+    entity_ids = filter_entities_to_device_class_and_map_to_entity_ids(
+        await get_entities_for_area(self, area.id),
+        device_class,
+    )
+    if not multiple:
+        return entity_ids[0] if entity_ids else []
+    return entity_ids
 
 
 async def get_areas(self):
@@ -78,8 +110,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
-        # print(f"user_input1: {user_input}")
-        # print(f"init_info1: {self.init_info}")
         if user_input is not None:
             self.init_info = {"damper": user_input}
             return await self.async_step_second()
@@ -95,8 +125,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
-        # print(f"user_input2: {user_input}")
-        # print(f"init_info2: {self.init_info}")
         if user_input is not None:
             self.init_info = {
                 **self.init_info,
@@ -115,8 +143,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
-        # print(f"user_input3: {user_input}")
-        # print(f"init_info3: {self.init_info}")
         if user_input is not None:
             self.init_info = user_input
             return self.async_create_entry(

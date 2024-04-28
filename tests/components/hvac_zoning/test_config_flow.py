@@ -2,7 +2,8 @@
 
 
 from homeassistant.components.hvac_zoning.config_flow import (
-    filter_entities_to_device_class_and_map_to_entity_names,
+    filter_entities_to_device_class_and_map_to_entity_ids,
+    filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict,
 )
 from homeassistant.helpers.entity_registry import RegistryEntry
 
@@ -141,6 +142,92 @@ from homeassistant.helpers.entity_registry import RegistryEntry
 #     assert len(mock_setup_entry.mock_calls) == 1
 
 
+def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict():
+    """Test map entities to entity names."""
+    device_class = "damper"
+    entities = [
+        RegistryEntry(
+            entity_id="sensor.basement_temperature",
+            unique_id="Basement Temperature",
+            platform="hvac_stubs",
+            id="fcdf8c625327e2bd610ac6b4335ca438",
+            original_name="Basement Temperature",
+            original_device_class="temperature",
+        ),
+        RegistryEntry(
+            entity_id="cover.basement_west_vent",
+            unique_id="Basement West Vent",
+            platform="hvac_stubs",
+            id="800d6dcc0aef4b6a42476de9ff1403ad",
+            original_name="Basement West Vent",
+            original_device_class="damper",
+        ),
+        RegistryEntry(
+            entity_id="cover.basement_northeast_vent",
+            unique_id="Basement Northeast Vent",
+            platform="hvac_stubs",
+            id="0ae78e2e8f74045281a8ed154cd2b06d",
+            original_name="Basement Northeast Vent",
+            original_device_class="damper",
+        ),
+        RegistryEntry(
+            entity_id="cover.basement_southeast_vent",
+            unique_id="Basement Southeast Vent",
+            platform="hvac_stubs",
+            id="16d81f78e8b7917950f984277ba4feff",
+            original_name="Basement Southeast Vent",
+            original_device_class="damper",
+        ),
+    ]
+
+    entity_names = (
+        filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
+            entities, device_class
+        )
+    )
+
+    expected_entity_names = [
+        {"label": "Basement West Vent", "value": "cover.basement_west_vent"},
+        {"label": "Basement Northeast Vent", "value": "cover.basement_northeast_vent"},
+        {"label": "Basement Southeast Vent", "value": "cover.basement_southeast_vent"},
+    ]
+    assert entity_names == expected_entity_names
+
+
+def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict_climate():
+    """Test map entities to entity names."""
+    device_class = "climate"
+    entities = [
+        RegistryEntry(
+            entity_id="climate.living_room_thermostat",
+            unique_id="Living Room Thermostat",
+            platform="hvac_zoning_stubs",
+            id="9ac9672ee6b6e117ad7dabd02e07c3ec",
+            original_name="Living Room Thermostat",
+            original_device_class=None,
+        ),
+        RegistryEntry(
+            entity_id="sensor.basement_temperature",
+            unique_id="Basement Temperature",
+            platform="hvac_stubs",
+            id="fcdf8c625327e2bd610ac6b4335ca438",
+            original_name="Basement Temperature",
+            original_device_class="temperature",
+        ),
+    ]
+
+    entity_names = (
+        filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
+            entities, device_class
+        )
+    )
+
+    expected_entity_names = [
+        {"value": "climate.living_room_thermostat", "label": "Living Room Thermostat"}
+    ]
+    assert entity_names == expected_entity_names
+
+
 def test_filter_entities_to_device_class_and_map_to_entity_names():
     """Test map entities to entity names."""
     device_class = "damper"
@@ -179,45 +266,13 @@ def test_filter_entities_to_device_class_and_map_to_entity_names():
         ),
     ]
 
-    entity_names = filter_entities_to_device_class_and_map_to_entity_names(
+    entity_names = filter_entities_to_device_class_and_map_to_entity_ids(
         entities, device_class
     )
 
     expected_entity_names = [
-        {"label": "Basement West Vent", "value": "cover.basement_west_vent"},
-        {"label": "Basement Northeast Vent", "value": "cover.basement_northeast_vent"},
-        {"label": "Basement Southeast Vent", "value": "cover.basement_southeast_vent"},
-    ]
-    assert entity_names == expected_entity_names
-
-
-def test_filter_entities_to_device_class_and_map_to_entity_names_climate():
-    """Test map entities to entity names."""
-    device_class = "climate"
-    entities = [
-        RegistryEntry(
-            entity_id="climate.living_room_thermostat",
-            unique_id="Living Room Thermostat",
-            platform="hvac_zoning_stubs",
-            id="9ac9672ee6b6e117ad7dabd02e07c3ec",
-            original_name="Living Room Thermostat",
-            original_device_class=None,
-        ),
-        RegistryEntry(
-            entity_id="sensor.basement_temperature",
-            unique_id="Basement Temperature",
-            platform="hvac_stubs",
-            id="fcdf8c625327e2bd610ac6b4335ca438",
-            original_name="Basement Temperature",
-            original_device_class="temperature",
-        ),
-    ]
-
-    entity_names = filter_entities_to_device_class_and_map_to_entity_names(
-        entities, device_class
-    )
-
-    expected_entity_names = [
-        {"value": "climate.living_room_thermostat", "label": "Living Room Thermostat"}
+        "cover.basement_west_vent",
+        "cover.basement_northeast_vent",
+        "cover.basement_southeast_vent",
     ]
     assert entity_names == expected_entity_names
