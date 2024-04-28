@@ -42,7 +42,7 @@ def filter_entities_to_device_class_and_map_to_entity_names(entities, device_cla
     ]
 
 
-async def new_method(self, device_class, multiple):
+async def build_schema(self, device_class, multiple):
     """Build schema."""
     return vol.Schema(
         {
@@ -86,7 +86,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=await new_method(self, CoverDeviceClass.DAMPER, True),
+            data_schema=await build_schema(self, CoverDeviceClass.DAMPER, True),
             errors=errors,
         )
 
@@ -106,7 +106,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="second",
-            data_schema=await new_method(self, SensorDeviceClass.TEMPERATURE, False),
+            data_schema=await build_schema(self, SensorDeviceClass.TEMPERATURE, False),
             errors=errors,
         )
 
@@ -129,6 +129,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="third",
-            data_schema=await new_method(self, "climate", False),
+            data_schema=await build_schema(self, "climate", False),
             errors=errors,
         )
