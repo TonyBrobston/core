@@ -7,6 +7,8 @@ from typing import Any
 
 import voluptuous as vol
 
+from homeassistant.components.cover import CoverDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -85,6 +87,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
+        # print(f"user_input1: {user_input}")
         if user_input is not None:
             # try:
             #     info = await validate_input(self.hass, user_input)
@@ -108,7 +111,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                         SelectSelectorConfig(
                             options=filter_entities_to_device_class_and_map_to_entity_names(
                                 await get_entities_for_area(self, entry.id),
-                                "damper",
+                                CoverDeviceClass.DAMPER,
                             ),
                             multiple=True,
                         )
@@ -124,6 +127,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
+        # print(f"user_input2: {user_input}")
         if user_input is not None:
             # print(f"user_input: {user_input}")
             # try:
@@ -146,7 +150,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(entry.id): vol.In(
                         filter_entities_to_device_class_and_map_to_entity_names(
                             await get_entities_for_area(self, entry.id),
-                            "temperature",
+                            SensorDeviceClass.TEMPERATURE,
                         )
                     )
                     for entry in area_entries
@@ -160,6 +164,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
+        # print(f"user_input3: {user_input}")
         if user_input is not None:
             # print(f"user_input: {user_input}")
             # try:
@@ -168,11 +173,14 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             #     _LOGGER.exception("Unexpected exception")
             #     errors["base"] = "unknown"
             # else:
+            self.init_info = user_input
             return self.async_create_entry(title="HVAC Zoning", data=user_input)
 
         areaRegistry = AreaRegistry(self.hass)
         await areaRegistry.async_load()
         area_entries = list(areaRegistry.async_list_areas())
+
+        # print([await get_entities_for_area(self, entry.id) for entry in area_entries])
 
         return self.async_show_form(
             step_id="third",
