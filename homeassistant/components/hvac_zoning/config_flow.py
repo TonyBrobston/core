@@ -19,21 +19,6 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-class PlaceholderHub:
-    """Placeholder class to make tests pass.
-
-    TODO Remove this placeholder class and replace with things from your PyPI package.
-    """
-
-    def __init__(self, host: str) -> None:
-        """Initialize."""
-        self.host = host
-
-    async def authenticate(self, username: str, password: str) -> bool:
-        """Test if we can authenticate with the host."""
-        return True
-
-
 async def get_entities_for_area(self, area_id):
     """Get entities for area."""
     entityRegistry = EntityRegistry(self.hass)
@@ -64,22 +49,20 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             self.init_info = {"damper": user_input}
             return await self.async_step_second()
 
-        areas = await self.get_areas()
-
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(entry.id): SelectSelector(
+                    vol.Optional(area.id): SelectSelector(
                         SelectSelectorConfig(
                             options=filter_entities_to_device_class_and_map_to_entity_names(
-                                await get_entities_for_area(self, entry.id),
+                                await get_entities_for_area(self, area.id),
                                 CoverDeviceClass.DAMPER,
                             ),
                             multiple=True,
                         )
                     )
-                    for entry in areas
+                    for area in await self.get_areas()
                 },
             ),
             errors=errors,
@@ -99,21 +82,19 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
             }
             return await self.async_step_third()
 
-        areas = await self.get_areas()
-
         return self.async_show_form(
             step_id="second",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(entry.id): SelectSelector(
+                    vol.Optional(area.id): SelectSelector(
                         SelectSelectorConfig(
                             options=filter_entities_to_device_class_and_map_to_entity_names(
-                                await get_entities_for_area(self, entry.id),
+                                await get_entities_for_area(self, area.id),
                                 SensorDeviceClass.TEMPERATURE,
                             ),
                         )
                     )
-                    for entry in areas
+                    for area in await self.get_areas()
                 },
             ),
             errors=errors,
@@ -136,21 +117,19 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                 },
             )
 
-        areas = await self.get_areas()
-
         return self.async_show_form(
             step_id="third",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(entry.id): SelectSelector(
+                    vol.Optional(area.id): SelectSelector(
                         SelectSelectorConfig(
                             options=filter_entities_to_device_class_and_map_to_entity_names(
-                                await get_entities_for_area(self, entry.id),
+                                await get_entities_for_area(self, area.id),
                                 "climate",
                             ),
                         )
                     )
-                    for entry in areas
+                    for area in await self.get_areas()
                 },
             ),
             errors=errors,
