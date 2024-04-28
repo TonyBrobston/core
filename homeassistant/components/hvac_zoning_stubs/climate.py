@@ -21,7 +21,6 @@ class Thermostat(ClimateEntity):
         self._attr_temperature_unit = UnitOfTemperature.FAHRENHEIT
         self._attr_current_temperature = 69
         self._attr_target_temperature = 75
-        self._attr_original_device_class = "climate"
 
 
 async def async_setup_entry(

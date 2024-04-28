@@ -189,3 +189,33 @@ def test_filter_entities_to_device_class_and_map_to_entity_names():
         "Basement Southeast Vent",
     ]
     assert entity_names == expected_entity_names
+
+
+def test_filter_entities_to_device_class_and_map_to_entity_names_climate():
+    """Test map entities to entity names."""
+    device_class = "climate"
+    entities = [
+        RegistryEntry(
+            entity_id="climate.living_room_thermostat",
+            unique_id="Living Room Thermostat",
+            platform="hvac_zoning_stubs",
+            id="9ac9672ee6b6e117ad7dabd02e07c3ec",
+            original_name="Living Room Thermostat",
+            original_device_class=None,
+        ),
+        RegistryEntry(
+            entity_id="sensor.basement_temperature",
+            unique_id="Basement Temperature",
+            platform="hvac_stubs",
+            id="fcdf8c625327e2bd610ac6b4335ca438",
+            original_name="Basement Temperature",
+            original_device_class="temperature",
+        ),
+    ]
+
+    entity_names = filter_entities_to_device_class_and_map_to_entity_names(
+        entities, device_class
+    )
+
+    expected_entity_names = ["Living Room Thermostat"]
+    assert entity_names == expected_entity_names

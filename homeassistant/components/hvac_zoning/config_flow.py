@@ -212,5 +212,6 @@ def filter_entities_to_device_class_and_map_to_entity_names(entities, device_cla
     return [
         entity.original_name
         for entity in entities
-        if entity.original_device_class == device_class
+        if device_class
+        in (entity.original_device_class, entity.entity_id.split(".")[0])
     ]
