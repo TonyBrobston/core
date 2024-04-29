@@ -11,7 +11,9 @@ from homeassistant.components.cover import CoverDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.helpers.area_registry import AreaRegistry
-from homeassistant.helpers.entity_registry import EntityRegistry, async_entries_for_area
+from homeassistant.helpers.device_registry import DeviceRegistry, async_entries_for_area
+
+# from homeassistant.helpers.entity_registry import EntityRegistry, async_entries_for_area
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 from .const import DOMAIN
@@ -19,9 +21,16 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-async def get_entities_for_area(self, area_id):
+# async def get_entities_for_area(self, area_id):
+#     """Get entities for area."""
+#     entityRegistry = EntityRegistry(self.hass)
+#     await entityRegistry.async_load()
+#     return async_entries_for_area(entityRegistry, area_id)
+
+
+async def get_devices_for_area(self, area_id):
     """Get entities for area."""
-    entityRegistry = EntityRegistry(self.hass)
+    entityRegistry = DeviceRegistry(self.hass)
     await entityRegistry.async_load()
     return async_entries_for_area(entityRegistry, area_id)
 
@@ -76,7 +85,7 @@ async def build_schema(self, device_class, multiple):
 async def get_options(self, area, device_class):
     """Get options for form."""
     return filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
-        await get_entities_for_area(self, area.id),
+        await get_devices_for_area(self, area.id),
         device_class,
     )
 
@@ -84,7 +93,7 @@ async def get_options(self, area, device_class):
 async def get_defaults(self, area, device_class, multiple):
     """Get defaults for form."""
     entity_ids = filter_entities_to_device_class_and_map_to_entity_ids(
-        await get_entities_for_area(self, area.id),
+        await get_devices_for_area(self, area.id),
         device_class,
     )
     if not multiple:
@@ -109,6 +118,10 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
+        # areas = await get_areas(self)
+        # devices = [get_devices_for_area(self, area.id) for area in areas]
+        # _LOGGER.info(f"devices: {devices}")
+        # print(f"devices: {devices}")
         errors: dict[str, str] = {}
         if user_input is not None:
             self.init_info = {"damper": user_input}
