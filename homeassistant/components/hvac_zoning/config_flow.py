@@ -119,7 +119,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         # areas = await get_areas(self)
-        # devices = [get_devices_for_area(self, area.id) for area in areas]
+        # devices = [await get_devices_for_area(self, area.id) for area in areas]
         # _LOGGER.info(f"devices: {devices}")
         # print(f"devices: {devices}")
         errors: dict[str, str] = {}
