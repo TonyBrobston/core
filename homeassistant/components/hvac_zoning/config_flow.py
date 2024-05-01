@@ -21,13 +21,6 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-async def get_entities_for_area(self, area_id):
-    """Get entities for area."""
-    entityRegistry = EntityRegistry(self.hass)
-    await entityRegistry.async_load()
-    return async_entries_for_area(entityRegistry, area_id)
-
-
 # async def get_devices_for_area(self, area_id):
 #     """Get entities for area."""
 #     entityRegistry = DeviceRegistry(self.hass)
@@ -35,10 +28,39 @@ async def get_entities_for_area(self, area_id):
 #     return async_entries_for_area(entityRegistry, area_id)
 
 
-async def get_entities_original_name_for_area(self, area_id):
-    """Get entities original name for area."""
-    entities = await get_entities_original_name_for_area(self, area_id)
-    return [entity.original_name for entity in entities]
+async def get_areas(self):
+    """Load and list areas."""
+    areaRegistry = AreaRegistry(self.hass)
+    await areaRegistry.async_load()
+    return list(areaRegistry.async_list_areas())
+
+
+def filter_entities_to_device_class_and_map_to_entity_ids(entities, device_class):
+    """Map entities to entity names."""
+    return [
+        entity.entity_id
+        for entity in entities
+        if device_class
+        in (entity.original_device_class, entity.entity_id.split(".")[0])
+    ]
+
+
+async def get_entities_for_area(self, area_id):
+    """Get entities for area."""
+    entityRegistry = EntityRegistry(self.hass)
+    await entityRegistry.async_load()
+    return async_entries_for_area(entityRegistry, area_id)
+
+
+async def get_defaults(self, area, device_class, multiple):
+    """Get defaults for form."""
+    entity_ids = filter_entities_to_device_class_and_map_to_entity_ids(
+        await get_entities_for_area(self, area.id),
+        device_class,
+    )
+    if not multiple:
+        return entity_ids[0] if entity_ids else []
+    return entity_ids
 
 
 def filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
@@ -53,14 +75,12 @@ def filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
     ]
 
 
-def filter_entities_to_device_class_and_map_to_entity_ids(entities, device_class):
-    """Map entities to entity names."""
-    return [
-        entity.entity_id
-        for entity in entities
-        if device_class
-        in (entity.original_device_class, entity.entity_id.split(".")[0])
-    ]
+async def get_options(self, area, device_class):
+    """Get options for form."""
+    return filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
+        await get_entities_for_area(self, area.id),
+        device_class,
+    )
 
 
 async def build_schema(self, device_class, multiple):
@@ -82,32 +102,6 @@ async def build_schema(self, device_class, multiple):
     )
 
 
-async def get_options(self, area, device_class):
-    """Get options for form."""
-    return filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
-        await get_entities_for_area(self, area.id),
-        device_class,
-    )
-
-
-async def get_defaults(self, area, device_class, multiple):
-    """Get defaults for form."""
-    entity_ids = filter_entities_to_device_class_and_map_to_entity_ids(
-        await get_entities_for_area(self, area.id),
-        device_class,
-    )
-    if not multiple:
-        return entity_ids[0] if entity_ids else []
-    return entity_ids
-
-
-async def get_areas(self):
-    """Load and list areas."""
-    areaRegistry = AreaRegistry(self.hass)
-    await areaRegistry.async_load()
-    return list(areaRegistry.async_list_areas())
-
-
 class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HVAC Zoning."""
 
@@ -118,10 +112,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
-        # areas = await get_areas(self)
-        # entities = [await get_entities_for_area(self, area.id) for area in areas]
-        # _LOGGER.info(f"entities: {entities}")
-        # print(f"entities: {entities}")
         errors: dict[str, str] = {}
         if user_input is not None:
             self.init_info = {"damper": user_input}
