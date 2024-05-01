@@ -12,6 +12,11 @@
       "third": {
         "data": {},
         "description": "Choose your Thermostat."
+      },
+      "fourth": {
+        "data": {
+          "question": "Create one Virtual Thermostat per room?"
+        }
       }
     },
     "error": {

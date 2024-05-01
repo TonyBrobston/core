@@ -111,7 +111,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step."""
+        """Handle selecting vents."""
         errors: dict[str, str] = {}
         if user_input is not None:
             self.init_info = {"damper": user_input}
@@ -126,7 +126,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_second(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step."""
+        """Handle selecting temperature sensors."""
         errors: dict[str, str] = {}
         if user_input is not None:
             self.init_info = {
@@ -144,20 +144,46 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_third(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step."""
+        """Handle selecting the thermostat."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.init_info = user_input
-            return self.async_create_entry(
-                title="HVAC Zoning",
-                data={
-                    **self.init_info,
-                    "climate": user_input,
-                },
-            )
+            self.init_info = {
+                **self.init_info,
+                "climate": user_input,
+            }
+            return await self.async_step_fourth()
 
         return self.async_show_form(
             step_id="third",
             data_schema=await build_schema(self, "climate", False),
+            errors=errors,
+        )
+
+    async def async_step_fourth(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle creating virtual thermostats."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            return self.async_create_entry(
+                title="HVAC Zoning",
+                data=self.init_info,
+            )
+
+        return self.async_show_form(
+            step_id="fourth",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "question",
+                        default="Yes",
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=["Yes", "No"],
+                            multiple=False,
+                        )
+                    )
+                },
+            ),
             errors=errors,
         )
