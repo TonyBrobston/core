@@ -2,7 +2,16 @@
   "config": {
     "step": {
       "user": {
-        "data": {}
+        "data": {},
+        "description": "Choose which Vents/Dampers you would like to use for these Areas."
+      },
+      "second": {
+        "data": {},
+        "description": "Choose which Temperature Sensors you would like to use for these Areas."
+      },
+      "third": {
+        "data": {},
+        "description": "Choose your Thermostat."
       }
     },
     "error": {
