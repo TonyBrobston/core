@@ -35,11 +35,18 @@ async def async_setup_entry(
     async_add_entities(
         [
             Thermostat(key.title() + "_thermostat")
-            for key in map_user_input_format(user_input)
+            for key in filter_to_valid_zones(user_input)
         ]
     )
 
 
-def map_user_input_format(user_input):
-    """Map user input format."""
-    return sorted({area for device_type in user_input.values() for area in device_type})
+def filter_to_valid_zones(user_input):
+    """Filter to valid zones."""
+    return sorted(
+        {
+            area
+            for areas in user_input.values()
+            for area in areas
+            if area in user_input["temperature"] and area in user_input["damper"]
+        }
+    )
