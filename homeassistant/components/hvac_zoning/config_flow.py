@@ -165,14 +165,12 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle creating virtual thermostats."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            data = {
-                **self.init_info,
-                "should_build_virtual_thermostats": user_input,
-            }
-            # print(f"all input data: {data}")
             return self.async_create_entry(
                 title=DOMAIN,
-                data=data,
+                data={
+                    **self.init_info,
+                    "should_build_virtual_thermostats": user_input,
+                },
             )
 
         return self.async_show_form(

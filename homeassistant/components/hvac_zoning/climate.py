@@ -29,8 +29,16 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Async setup entry."""
-    # async_add_entities([Thermostat("Living Room Thermostat")], True)
 
-    # data = hass.data[DOMAIN]
+    user_input = config_entry.as_dict()["data"]
 
-    # print(f"data: {data}")
+    if (
+        user_input != {}
+        and user_input["should_build_virtual_thermostats"]["question"] == "Yes"
+    ):
+        async_add_entities(
+            [
+                Thermostat(key.title() + "_thermostat")
+                for key in list(user_input["damper"].keys())
+            ]
+        )
