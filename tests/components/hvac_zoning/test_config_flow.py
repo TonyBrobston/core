@@ -142,7 +142,9 @@ from homeassistant.helpers.entity_registry import RegistryEntry
 #     assert len(mock_setup_entry.mock_calls) == 1
 
 
-def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict():
+def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict() -> (
+    None
+):
     """Test map entities to entity names."""
     device_class = "damper"
     entities = [
@@ -194,7 +196,9 @@ def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dic
     assert entity_names == expected_entity_names
 
 
-def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict_climate():
+def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict_climate() -> (
+    None
+):
     """Test map entities to entity names."""
     device_class = "climate"
     entities = [
@@ -228,7 +232,7 @@ def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dic
     assert entity_names == expected_entity_names
 
 
-def test_filter_entities_to_device_class_and_map_to_entity_names():
+def test_filter_entities_to_device_class_and_map_to_entity_names() -> None:
     """Test map entities to entity names."""
     device_class = "damper"
     entities = [

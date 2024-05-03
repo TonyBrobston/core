@@ -39,6 +39,15 @@ async def async_setup_entry(
         async_add_entities(
             [
                 Thermostat(key.title() + "_thermostat")
-                for key in list(user_input["damper"].keys())
+                for key in map_user_input_format(user_input)
             ]
         )
+
+
+def map_user_input_format(user_input):
+    """Map user input format."""
+    return sorted(
+        set(user_input["damper"].keys())
+        | set(user_input["temperature"].keys())
+        | set(user_input["climate"].keys())
+    )
