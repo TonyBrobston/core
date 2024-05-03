@@ -32,16 +32,12 @@ async def async_setup_entry(
 
     user_input = config_entry.as_dict()["data"]
 
-    if (
-        user_input != {}
-        and user_input["should_build_virtual_thermostats"]["question"] == "Yes"
-    ):
-        async_add_entities(
-            [
-                Thermostat(key.title() + "_thermostat")
-                for key in map_user_input_format(user_input)
-            ]
-        )
+    async_add_entities(
+        [
+            Thermostat(key.title() + "_thermostat")
+            for key in map_user_input_format(user_input)
+        ]
+    )
 
 
 def map_user_input_format(user_input):

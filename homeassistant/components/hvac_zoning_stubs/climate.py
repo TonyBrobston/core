@@ -30,3 +30,10 @@ async def async_setup_entry(
 ) -> None:
     """Async setup entry."""
     async_add_entities([Thermostat("Living Room Thermostat")], True)
+
+
+def set_temperature(self, **kwargs):
+    """Set new target temperature."""
+    # print()
+    # kwargs.get()
+    # self._attr_target_temperature
