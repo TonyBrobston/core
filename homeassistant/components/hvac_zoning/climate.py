@@ -42,8 +42,4 @@ async def async_setup_entry(
 
 def map_user_input_format(user_input):
     """Map user input format."""
-    return sorted(
-        set(user_input["damper"].keys())
-        | set(user_input["temperature"].keys())
-        | set(user_input["climate"].keys())
-    )
+    return sorted({area for device_type in user_input.values() for area in device_type})

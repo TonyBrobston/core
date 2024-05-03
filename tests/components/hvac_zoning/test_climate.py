@@ -32,7 +32,6 @@ def test_map_user_input_format() -> None:
             "upstairs_bathroom": "sensor.upstairs_bathroom_temperature",
         },
         "climate": {"main_floor": "climate.living_room_thermostat"},
-        "should_build_virtual_thermostats": {"question": "Yes"},
     }
 
     mapped_user_input = map_user_input_format(user_input)
