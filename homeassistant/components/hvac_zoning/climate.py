@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from homeassistant.components.climate import ClimateEntity, HVACMode
+from typing import Any
+
+from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -10,17 +12,23 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 
 class Thermostat(ClimateEntity):
-    """Derp is a Thermostat."""
+    """Thermostat."""
 
-    def __init__(self, name: str) -> None:
-        """Derp is a Thermostat init."""
+    _attr_temperature_unit = UnitOfTemperature.FAHRENHEIT
+    _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
+    _attr_target_temperature = 70
+    _attr_hvac_mode = None
+    _attr_hvac_modes = []
+
+    def __init__(self, name) -> None:
+        """Thermostat init."""
         self._attr_unique_id = name
         self._attr_name = name
-        self._attr_hvac_mode = HVACMode.HEAT
-        self._attr_hvac_modes = [HVACMode.HEAT]
-        self._attr_temperature_unit = UnitOfTemperature.FAHRENHEIT
-        self._attr_current_temperature = 69
-        self._attr_target_temperature = 75
+
+    def set_temperature(self, **kwargs: Any) -> None:
+        """Set new target temperature."""
+        # temp = kwargs.get(ATTR_TEMPERATURE)
+        # print(f"temp: {temp}")
 
 
 async def async_setup_entry(
