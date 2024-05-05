@@ -27,9 +27,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # def handle_event(event):
     #     event_dict = event.as_dict()
     #     user_input = config_entry.as_dict()["data"]
+    #     print(f"user_input: {user_input}")
     #     thermostat_entity_ids = [
     #         "climate." + zone_name + "_thermostat"
-    #         for zone_name in filter_to_valid_zones(user_input)
+    #         for zone_name in filter_to_valid_areas(user_input)
     #     ]
     #     if (
     #         event_dict["event_type"] == "state_changed"
