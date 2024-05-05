@@ -1,6 +1,6 @@
-"""Test climate."""
+"""Test util."""
 
-from homeassistant.components.hvac_zoning.climate import filter_to_valid_zones
+from homeassistant.components.hvac_zoning.util import filter_to_valid_zones
 
 
 def test_filter_to_valid_zones() -> None:

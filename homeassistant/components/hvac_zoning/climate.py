@@ -10,6 +10,8 @@ from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .util import filter_to_valid_zones
+
 
 class Thermostat(ClimateEntity):
     """Thermostat."""
@@ -27,7 +29,9 @@ class Thermostat(ClimateEntity):
 
     def set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
-        self._attr_target_temperature = kwargs.get(ATTR_TEMPERATURE)
+        temperature = kwargs.get(ATTR_TEMPERATURE)
+        # print(f"temperature: {temperature}")
+        self._attr_target_temperature = temperature
 
 
 async def async_setup_entry(
@@ -41,19 +45,7 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            Thermostat(key.title() + "_thermostat")
-            for key in filter_to_valid_zones(user_input)
+            Thermostat(zone_name + "_thermostat")
+            for zone_name in filter_to_valid_zones(user_input)
         ]
-    )
-
-
-def filter_to_valid_zones(user_input):
-    """Filter to valid zones."""
-    return sorted(
-        {
-            area
-            for areas in user_input.values()
-            for area in areas
-            if area in user_input["temperature"] and area in user_input["damper"]
-        }
     )

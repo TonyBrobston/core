@@ -5,7 +5,6 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN
 
@@ -14,7 +13,7 @@ from .const import DOMAIN
 PLATFORMS: list[Platform] = [Platform.CLIMATE]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up HVAC Zoning from a config entry."""
 
     hass.data.setdefault(DOMAIN, {})
@@ -23,15 +22,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # TO DO 3. Store an API object for your platforms to access
     # hass.data[DOMAIN][entry.entry_id] = MyApi(...)
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    return True
-
-
-def setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up is called when Home Assistant is loading our component."""
     # def handle_event(event):
-    #     print(f"event: {event.as_dict()}")
+    #     event_dict = event.as_dict()
+    #     user_input = config_entry.as_dict()["data"]
+    #     thermostat_entity_ids = [
+    #         "climate." + zone_name + "_thermostat"
+    #         for zone_name in filter_to_valid_zones(user_input)
+    #     ]
+    #     if (
+    #         event_dict["event_type"] == "state_changed"
+    #         and event_dict["data"]["entity_id"] in thermostat_entity_ids
+    #     ):
+    #         print(f"event: {event_dict}")
 
-    # hass.bus.listen("state_changed", handle_event)
+    #     if (
+    #         event_dict["event_type"] == "call_service"
+    #         and event_dict["data"]["service_data"]["temperature"] == 71
+    #     ):
+    #         hass.services.call(
+    #             "climate",
+    #             "set_temperature",
+    #             service_data={
+    #                 "entity_id": "climate.basement_thermostat",
+    #                 "temperature": 65,
+    #             },
+    #         )
+
+    # hass.bus.async_listen("state_changed", handle_event)
+    # hass.bus.async_listen("call_service", handle_event)
     return True
