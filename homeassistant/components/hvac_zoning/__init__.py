@@ -28,28 +28,32 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     #     event_dict = event.as_dict()
     #     user_input = config_entry.as_dict()["data"]
     #     print(f"user_input: {user_input}")
+    #     event_type = event_dict["event_type"]
+    #     entity_id = event_dict["data"]["entity_id"]
     #     thermostat_entity_ids = [
     #         "climate." + zone_name + "_thermostat"
     #         for zone_name in filter_to_valid_areas(user_input)
     #     ]
-    #     if (
-    #         event_dict["event_type"] == "state_changed"
-    #         and event_dict["data"]["entity_id"] in thermostat_entity_ids
-    #     ):
+    #     damper_and_temperature_entity_ids = get_all_entities(
+    #         reformat_and_filter_to_valid_areas(user_input)
+    #     )
+    #     entity_ids = thermostat_entity_ids + damper_and_temperature_entity_ids
+    #     # TO DO: Include main climate
+    #     if event_type == "state_changed" and entity_id in entity_ids:
     #         print(f"event: {event_dict}")
 
-    #     if (
-    #         event_dict["event_type"] == "call_service"
-    #         and event_dict["data"]["service_data"]["temperature"] == 71
-    #     ):
-    #         hass.services.call(
-    #             "climate",
-    #             "set_temperature",
-    #             service_data={
-    #                 "entity_id": "climate.basement_thermostat",
-    #                 "temperature": 65,
-    #             },
-    #         )
+    #     # if (
+    #     #     event_dict["event_type"] == "call_service"
+    #     #     and event_dict["data"]["service_data"]["temperature"] == 71
+    #     # ):
+    #     #     hass.services.call(
+    #     #         "climate",
+    #     #         "set_temperature",
+    #     #         service_data={
+    #     #             "entity_id": "climate.basement_thermostat",
+    #     #             "temperature": 65,
+    #     #         },
+    #     #     )
 
     # hass.bus.async_listen("state_changed", handle_event)
     # hass.bus.async_listen("call_service", handle_event)
