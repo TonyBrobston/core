@@ -23,3 +23,16 @@ def reformat_and_filter_to_valid_areas(user_input):
         }
         for area in valid_areas
     }
+
+
+def get_all_entities(areas):
+    """Get all entities."""
+    return sorted(
+        [
+            entity
+            for area in areas.values()
+            for key, value in area.items()
+            for entity in (value if isinstance(value, list) else [value])
+            if isinstance(entity, str)
+        ]
+    )
