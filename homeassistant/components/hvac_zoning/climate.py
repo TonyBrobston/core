@@ -16,7 +16,6 @@ class Thermostat(ClimateEntity):
 
     _attr_temperature_unit = UnitOfTemperature.FAHRENHEIT
     _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
-    # _attr_target_temperature = 70.0
     _attr_hvac_mode = None
     _attr_hvac_modes = []
 
@@ -24,6 +23,7 @@ class Thermostat(ClimateEntity):
         """Thermostat init."""
         self._attr_unique_id = name
         self._attr_name = name
+        self._attr_target_temperature = 70.0
 
     def set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
