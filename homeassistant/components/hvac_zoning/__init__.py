@@ -37,7 +37,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     #     damper_and_temperature_entity_ids = get_all_entities(
     #         reformat_and_filter_to_valid_areas(user_input)
     #     )
-    #     entity_ids = thermostat_entity_ids + damper_and_temperature_entity_ids
+    #     thermostat_entity = get_thermostat_entity(user_input)
+    #     entity_ids = (
+    #         thermostat_entity_ids
+    #         + damper_and_temperature_entity_ids
+    #         + thermostat_entity
+    #     )
     #     # TO DO: Include main climate
     #     if event_type == "state_changed" and entity_id in entity_ids:
     #         print(f"event: {event_dict}")
