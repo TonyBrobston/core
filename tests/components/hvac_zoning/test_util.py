@@ -4,7 +4,7 @@
 from homeassistant.components.hvac_zoning.util import (
     filter_to_valid_areas,
     get_all_entities,
-    get_thermostat_entity,
+    get_thermostat_entities,
     reformat_and_filter_to_valid_areas,
 )
 
@@ -260,8 +260,8 @@ def test_get_all_entities() -> None:
     ]
 
 
-def test_get_thermostat_entity() -> None:
-    """Test get thermostat entity."""
+def test_get_thermostat_entities() -> None:
+    """Test get thermostat entities."""
     user_input = {
         "damper": {
             "main_floor": [
@@ -291,6 +291,6 @@ def test_get_thermostat_entity() -> None:
         "climate": {"main_floor": "climate.living_room_thermostat"},
     }
 
-    thermostat_entity = get_thermostat_entity(user_input)
+    thermostat = get_thermostat_entities(user_input)
 
-    assert thermostat_entity == "climate.living_room_thermostat"
+    assert thermostat == ["climate.living_room_thermostat"]

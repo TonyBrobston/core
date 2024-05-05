@@ -38,6 +38,6 @@ def get_all_entities(areas):
     )
 
 
-def get_thermostat_entity(user_input):
+def get_thermostat_entities(user_input):
     """Get thermostat."""
-    return list(user_input["climate"].values())[0]
+    return list(user_input["climate"].values())
