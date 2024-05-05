@@ -4,6 +4,7 @@
 from homeassistant.components.hvac_zoning.util import (
     filter_to_valid_areas,
     get_all_entities,
+    get_thermostat_entity,
     reformat_and_filter_to_valid_areas,
 )
 
@@ -257,3 +258,39 @@ def test_get_all_entities() -> None:
         "sensor.office_temperature",
         "sensor.upstairs_bathroom_temperature",
     ]
+
+
+def test_get_thermostat_entity() -> None:
+    """Test get thermostat entity."""
+    user_input = {
+        "damper": {
+            "main_floor": [
+                "cover.living_room_northeast_vent",
+                "cover.living_room_southeast_vent",
+                "cover.kitchen_south_vent",
+                "cover.kitchen_northwest_vent",
+            ],
+            "basement": [
+                "cover.basement_west_vent",
+                "cover.basement_northeast_vent",
+                "cover.basement_southeast_vent",
+            ],
+            "master_bedroom": ["cover.master_bedroom_vent"],
+            "guest_bedroom": ["cover.guest_bedroom_vent"],
+            "office": ["cover.office_vent"],
+            "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
+        },
+        "temperature": {
+            "main_floor": "sensor.main_floor_temperature",
+            "basement": "sensor.basement_temperature",
+            "master_bedroom": "sensor.master_bedroom_temperature",
+            "guest_bedroom": "sensor.guest_bedroom_temperature",
+            "office": "sensor.office_temperature",
+            "upstairs_bathroom": "sensor.upstairs_bathroom_temperature",
+        },
+        "climate": {"main_floor": "climate.living_room_thermostat"},
+    }
+
+    thermostat_entity = get_thermostat_entity(user_input)
+
+    assert thermostat_entity == "climate.living_room_thermostat"
