@@ -61,3 +61,27 @@ def determine_cover_service(
                 return SERVICE_CLOSE_COVER
 
     return SERVICE_OPEN_COVER
+
+
+def determine_thermostat_target_temperature(
+    target_temperature: int,
+    actual_temperature: int,
+    hvac_mode: str,
+    cover_services: list[str],
+) -> int:
+    """Determine the new thermostat target temperature based on the current state."""
+    match hvac_mode:
+        case HVACMode.HEAT:
+            if SERVICE_OPEN_COVER in cover_services:
+                if actual_temperature <= target_temperature:
+                    return actual_temperature + 1
+            elif SERVICE_CLOSE_COVER in cover_services:
+                return actual_temperature - 1
+        case HVACMode.COOL:
+            if SERVICE_OPEN_COVER in cover_services:
+                if actual_temperature >= target_temperature:
+                    return actual_temperature - 1
+            elif SERVICE_CLOSE_COVER in cover_services:
+                return actual_temperature + 1
+
+    return target_temperature
