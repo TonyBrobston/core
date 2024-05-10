@@ -252,12 +252,12 @@ def test_determine_cover_service(
         (
             HVACMode.HEAT_COOL,
             {"basement": {"target_temperature": 72, "actual_temperature": 71}},
-            [],
+            [SERVICE_OPEN_COVER],
         ),
         (
             HVACMode.OFF,
             {"basement": {"target_temperature": 72, "actual_temperature": 71}},
-            [],
+            [SERVICE_OPEN_COVER],
         ),
     ],
 )

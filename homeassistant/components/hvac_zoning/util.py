@@ -71,8 +71,6 @@ def determine_cover_service(
 
 def determine_cover_services(rooms, hvac_mode):
     """Determine cover services."""
-    if hvac_mode not in SUPPORTED_HVAC_MODES:
-        return []
     return [
         determine_cover_service(
             room["target_temperature"], room["actual_temperature"], hvac_mode
