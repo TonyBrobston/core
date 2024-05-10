@@ -85,3 +85,15 @@ def determine_thermostat_target_temperature(
                 return actual_temperature + 1
 
     return target_temperature
+
+
+def determine_cover_services(rooms, hvac_mode):
+    """Determine cover services."""
+    if hvac_mode == HVACMode.HEAT_COOL:
+        return []
+    return [
+        determine_cover_service(
+            room["target_temperature"], room["actual_temperature"], hvac_mode
+        )
+        for room in rooms.values()
+    ]
