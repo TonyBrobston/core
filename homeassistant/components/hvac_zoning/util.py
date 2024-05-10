@@ -30,7 +30,7 @@ def reformat_and_filter_to_valid_areas(user_input):
 
 
 def get_all_damper_and_temperature_entities(areas):
-    """Get all entities."""
+    """Get all damper and temperature entities."""
     return sorted(
         [
             entity
