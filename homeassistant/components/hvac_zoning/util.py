@@ -91,14 +91,18 @@ def determine_thermostat_target_temperature(
         case HVACMode.HEAT:
             if SERVICE_OPEN_COVER in cover_services:
                 if actual_temperature <= target_temperature:
-                    return actual_temperature + change_in_temperature
+                    heat_heating = actual_temperature + change_in_temperature
+                    return heat_heating
             else:
-                return actual_temperature - change_in_temperature
+                heat_idle = actual_temperature - change_in_temperature
+                return heat_idle
         case HVACMode.COOL:
             if SERVICE_OPEN_COVER in cover_services:
                 if actual_temperature >= target_temperature:
-                    return actual_temperature - change_in_temperature
+                    cool_cooling = actual_temperature - change_in_temperature
+                    return cool_cooling
             else:
-                return actual_temperature + change_in_temperature
+                cool_idle = actual_temperature + change_in_temperature
+                return cool_idle
 
     return target_temperature
