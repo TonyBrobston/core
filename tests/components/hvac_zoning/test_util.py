@@ -432,12 +432,12 @@ def test_determine_thermostat_target_temperature_move_to_heating() -> None:
         target_temperature, actual_temperature, hvac_mode, cover_services
     )
 
-    assert new_thermostat_target_temperature == 71
+    assert new_thermostat_target_temperature == 72
 
 
 def test_determine_thermostat_target_temperature_continue_heating() -> None:
     """Determine thermostat target temperature continue heating."""
-    target_temperature = 71
+    target_temperature = 72
     actual_temperature = 70
     hvac_mode = HVACMode.HEAT
     cover_services = [SERVICE_OPEN_COVER]
@@ -446,7 +446,7 @@ def test_determine_thermostat_target_temperature_continue_heating() -> None:
         target_temperature, actual_temperature, hvac_mode, cover_services
     )
 
-    assert new_thermostat_target_temperature == 71
+    assert new_thermostat_target_temperature == target_temperature
 
 
 def test_determine_thermostat_target_temperature_stop_heating() -> None:
@@ -460,7 +460,7 @@ def test_determine_thermostat_target_temperature_stop_heating() -> None:
         target_temperature, actual_temperature, hvac_mode, cover_services
     )
 
-    assert new_thermostat_target_temperature == 69
+    assert new_thermostat_target_temperature == 68
 
 
 def test_determine_thermostat_target_temperature_move_to_cooling() -> None:
@@ -474,12 +474,12 @@ def test_determine_thermostat_target_temperature_move_to_cooling() -> None:
         target_temperature, actual_temperature, hvac_mode, cover_services
     )
 
-    assert new_thermostat_target_temperature == 69
+    assert new_thermostat_target_temperature == 68
 
 
 def test_determine_thermostat_target_temperature_continue_cooling() -> None:
     """Test determine thermostat target temperature continue cooling."""
-    target_temperature = 69
+    target_temperature = 68
     actual_temperature = 70
     hvac_mode = HVACMode.COOL
     cover_services = [SERVICE_OPEN_COVER]
@@ -488,7 +488,7 @@ def test_determine_thermostat_target_temperature_continue_cooling() -> None:
         target_temperature, actual_temperature, hvac_mode, cover_services
     )
 
-    assert new_thermostat_target_temperature == 69
+    assert new_thermostat_target_temperature == target_temperature
 
 
 def test_determine_thermostat_target_temperature_stop_cooling() -> None:
@@ -502,12 +502,12 @@ def test_determine_thermostat_target_temperature_stop_cooling() -> None:
         target_temperature, actual_temperature, hvac_mode, cover_services
     )
 
-    assert new_thermostat_target_temperature == 71
+    assert new_thermostat_target_temperature == 72
 
 
 def test_determine_thermostat_target_temperature_continue_heat_cool() -> None:
     """Test determine thermostat target temperature continue cooling."""
-    target_temperature = 69
+    target_temperature = 68
     actual_temperature = 70
     hvac_mode = HVACMode.HEAT_COOL
     cover_services = [SERVICE_OPEN_COVER]
