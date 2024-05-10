@@ -69,6 +69,18 @@ def determine_cover_service(
     return SERVICE_OPEN_COVER
 
 
+def determine_cover_services(rooms, hvac_mode):
+    """Determine cover services."""
+    if hvac_mode not in SUPPORTED_HVAC_MODES:
+        return []
+    return [
+        determine_cover_service(
+            room["target_temperature"], room["actual_temperature"], hvac_mode
+        )
+        for room in rooms.values()
+    ]
+
+
 def determine_thermostat_target_temperature(
     target_temperature: int,
     actual_temperature: int,
@@ -92,15 +104,3 @@ def determine_thermostat_target_temperature(
                 return actual_temperature + change_in_temperature
 
     return target_temperature
-
-
-def determine_cover_services(rooms, hvac_mode):
-    """Determine cover services."""
-    if hvac_mode not in SUPPORTED_HVAC_MODES:
-        return []
-    return [
-        determine_cover_service(
-            room["target_temperature"], room["actual_temperature"], hvac_mode
-        )
-        for room in rooms.values()
-    ]
