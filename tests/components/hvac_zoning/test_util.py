@@ -155,15 +155,29 @@ def test_get_all_damper_and_temperature_entity_ids() -> None:
     ]
 
 
-def test_get_thermostat_entities() -> None:
+@pytest.mark.parametrize(
+    ("user_input", "expected_thermostats"),
+    [
+        (
+            {"climate": {"main_floor": "climate.living_room_thermostat"}},
+            ["climate.living_room_thermostat"],
+        ),
+        (
+            {
+                "climate": {
+                    "main_floor": "climate.living_room_thermostat",
+                    "garage": "climate.garage_thermostat",
+                },
+            },
+            ["climate.living_room_thermostat", "climate.garage_thermostat"],
+        ),
+    ],
+)
+def test_get_thermostat_entities(user_input, expected_thermostats) -> None:
     """Test get thermostat entities."""
-    user_input = {
-        "climate": {"main_floor": "climate.living_room_thermostat"},
-    }
-
     thermostat = get_thermostat_entities(user_input)
 
-    assert thermostat == ["climate.living_room_thermostat"]
+    assert thermostat == expected_thermostats
 
 
 @pytest.mark.parametrize(
