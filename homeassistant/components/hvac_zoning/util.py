@@ -52,11 +52,12 @@ def determine_cover_service(
     if hvac_mode is None or target_temperature is None or actual_temperature is None:
         return SERVICE_OPEN_COVER
 
-    if hvac_mode == HVACMode.HEAT:
-        if actual_temperature >= target_temperature:
-            return SERVICE_CLOSE_COVER
-    elif hvac_mode == HVACMode.COOL:
-        if actual_temperature <= target_temperature:
-            return SERVICE_CLOSE_COVER
+    match hvac_mode:
+        case HVACMode.HEAT:
+            if actual_temperature >= target_temperature:
+                return SERVICE_CLOSE_COVER
+        case HVACMode.COOL:
+            if actual_temperature <= target_temperature:
+                return SERVICE_CLOSE_COVER
 
     return SERVICE_OPEN_COVER
