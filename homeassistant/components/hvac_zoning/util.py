@@ -2,6 +2,8 @@
 from homeassistant.components.climate import HVACMode
 from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
 
+from .const import SUPPORTED_HVAC_MODES
+
 
 def filter_to_valid_areas(user_input):
     """Filter to valid areas."""
@@ -49,7 +51,11 @@ def determine_cover_service(
     target_temperature: int, actual_temperature: int, hvac_mode: HVACMode
 ) -> str:
     """Determine cover service."""
-    if hvac_mode is None or target_temperature is None or actual_temperature is None:
+    if (
+        hvac_mode not in SUPPORTED_HVAC_MODES
+        or target_temperature is None
+        or actual_temperature is None
+    ):
         return SERVICE_OPEN_COVER
 
     match hvac_mode:
@@ -89,7 +95,7 @@ def determine_thermostat_target_temperature(
 
 def determine_cover_services(rooms, hvac_mode):
     """Determine cover services."""
-    if hvac_mode == HVACMode.HEAT_COOL:
+    if hvac_mode not in SUPPORTED_HVAC_MODES:
         return []
     return [
         determine_cover_service(

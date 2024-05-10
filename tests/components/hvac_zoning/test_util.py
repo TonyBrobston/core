@@ -654,3 +654,18 @@ def test_determine_cover_services_do_nothing_heat_cool() -> None:
     cover_services = determine_cover_services(rooms, hvac_mode)
 
     assert not cover_services
+
+
+def test_determine_cover_services_do_nothing_off() -> None:
+    """Determine cover services do nothing off."""
+    hvac_mode = HVACMode.OFF
+    rooms = {
+        "basement": {
+            "target_temperature": 72,
+            "actual_temperature": 71,
+        }
+    }
+
+    cover_services = determine_cover_services(rooms, hvac_mode)
+
+    assert not cover_services
