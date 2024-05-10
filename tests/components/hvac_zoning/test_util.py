@@ -7,7 +7,7 @@ from homeassistant.components.hvac_zoning.util import (
     determine_cover_services,
     determine_thermostat_target_temperature,
     filter_to_valid_areas,
-    get_all_damper_and_temperature_entities,
+    get_all_damper_and_temperature_entity_ids,
     get_thermostat_entities,
     reformat_and_filter_to_valid_areas,
 )
@@ -94,7 +94,7 @@ def test_filter_to_valid_areas(user_input, expected_areas) -> None:
     assert areas == expected_areas
 
 
-def test_get_all_damper_and_temperature_entities() -> None:
+def test_get_all_damper_and_temperature_entity_ids() -> None:
     """Test get all entities."""
     areas = {
         "basement": {
@@ -132,7 +132,7 @@ def test_get_all_damper_and_temperature_entities() -> None:
         },
     }
 
-    entities = get_all_damper_and_temperature_entities(areas)
+    entities = get_all_damper_and_temperature_entity_ids(areas)
 
     assert entities == [
         "cover.basement_northeast_vent",

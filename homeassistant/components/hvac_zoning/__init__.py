@@ -29,16 +29,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     #     user_input = config_entry.as_dict()["data"]
     #     event_type = event_dict["event_type"]
     #     entity_id = event_dict["data"]["entity_id"]
-    #     thermostat_entity_ids = [
+    #     virtual_thermostat_entity_ids = [
     #         "climate." + zone_name + "_thermostat"
     #         for zone_name in filter_to_valid_areas(user_input)
     #     ]
-    #     damper_and_temperature_entity_ids = get_all_damper_and_temperature_entities(
+    #     damper_and_temperature_entity_ids = get_all_damper_and_temperature_entity_ids(
     #         reformat_and_filter_to_valid_areas(user_input)
     #     )
     #     thermostat_entity = get_thermostat_entities(user_input)
     #     entity_ids = (
-    #         thermostat_entity_ids
+    #         virtual_thermostat_entity_ids
     #         + damper_and_temperature_entity_ids
     #         + thermostat_entity
     #     )
