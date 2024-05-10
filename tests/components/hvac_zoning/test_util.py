@@ -1,5 +1,5 @@
 """Test util."""
-
+import pytest
 
 from homeassistant.components.climate import HVACMode
 from homeassistant.components.hvac_zoning.util import (
@@ -197,124 +197,30 @@ def test_get_thermostat_entities() -> None:
     assert thermostat == ["climate.living_room_thermostat"]
 
 
-def test_determine_cover_service_heat_open_greater_than() -> None:
-    """Test determine cover service heat open greater than."""
-    target_temperature = 71
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT
+@pytest.mark.parametrize(
+    ("target_temperature", "actual_temperature", "hvac_mode", "expected_service"),
+    [
+        (71, 70, HVACMode.HEAT, SERVICE_OPEN_COVER),
+        (69, 70, HVACMode.HEAT, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.HEAT, SERVICE_CLOSE_COVER),
+        (69, 70, HVACMode.COOL, SERVICE_OPEN_COVER),
+        (71, 70, HVACMode.COOL, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.COOL, SERVICE_CLOSE_COVER),
+        (71, 70, None, SERVICE_OPEN_COVER),
+        (71, 70, HVACMode.HEAT_COOL, SERVICE_OPEN_COVER),
+        (None, 70, HVACMode.HEAT, SERVICE_OPEN_COVER),
+        (70, None, HVACMode.HEAT, SERVICE_OPEN_COVER),
+        (None, 70, HVACMode.COOL, SERVICE_OPEN_COVER),
+        (70, None, HVACMode.COOL, SERVICE_OPEN_COVER),
+    ],
+)
+def test_determine_cover_service(
+    target_temperature, actual_temperature, hvac_mode, expected_service
+) -> None:
+    """Test determine cover service."""
     service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
 
-    assert service == SERVICE_OPEN_COVER
-
-
-def test_determine_cover_service_heat_close_less_than() -> None:
-    """Test determine cover service heat close less than."""
-    target_temperature = 69
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_CLOSE_COVER
-
-
-def test_determine_cover_service_heat_close_equal_to() -> None:
-    """Test determine cover service heat close equal to."""
-    target_temperature = 70
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_CLOSE_COVER
-
-
-def test_determine_cover_service_cool_open_less_than() -> None:
-    """Test determine cover service cool open less than."""
-    target_temperature = 69
-    actual_temperature = 70
-    hvac_mode = HVACMode.COOL
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_OPEN_COVER
-
-
-def test_determine_cover_service_cool_close_greater_than() -> None:
-    """Test determine cover service cool close greater than."""
-    target_temperature = 71
-    actual_temperature = 70
-    hvac_mode = HVACMode.COOL
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_CLOSE_COVER
-
-
-def test_determine_cover_service_cool_close_equal_to() -> None:
-    """Test determine cover service cool close equal to."""
-    target_temperature = 70
-    actual_temperature = 70
-    hvac_mode = HVACMode.COOL
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_CLOSE_COVER
-
-
-def test_determine_cover_service_none_open_none_hvac_mode() -> None:
-    """Test determine cover service none open invalid hvac mode."""
-    target_temperature = 71
-    actual_temperature = 70
-    hvac_mode = None
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_OPEN_COVER
-
-
-def test_determine_cover_service_none_open_heat_cool_hvac_mode() -> None:
-    """Test determine cover service none open invalid hvac mode."""
-    target_temperature = 71
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT_COOL
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_OPEN_COVER
-
-
-def test_determine_cover_service_heat_open_invalid_target_temperature() -> None:
-    """Test determine cover service heat open invalid target temperature."""
-    target_temperature = None
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_OPEN_COVER
-
-
-def test_determine_cover_service_heat_open_invalid_actual_temperature() -> None:
-    """Test determine cover service heat open invalid actual temperature."""
-    target_temperature = 70
-    actual_temperature = None
-    hvac_mode = HVACMode.HEAT
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_OPEN_COVER
-
-
-def test_determine_cover_service_cool_open_invalid_target_temperature() -> None:
-    """Test determine cover service cool open invalid target temperature."""
-    target_temperature = None
-    actual_temperature = 70
-    hvac_mode = HVACMode.COOL
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_OPEN_COVER
-
-
-def test_determine_cover_service_cool_open_invalid_actual_temperature() -> None:
-    """Test determine cover service cool open invalid actual temperature."""
-    target_temperature = 70
-    actual_temperature = None
-    hvac_mode = HVACMode.COOL
-    service = determine_cover_service(target_temperature, actual_temperature, hvac_mode)
-
-    assert service == SERVICE_OPEN_COVER
+    assert service == expected_service
 
 
 def test_determine_cover_services_move_to_heating_open_greater_than() -> None:
