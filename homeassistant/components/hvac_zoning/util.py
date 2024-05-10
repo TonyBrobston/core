@@ -29,7 +29,7 @@ def reformat_and_filter_to_valid_areas(user_input):
     }
 
 
-def get_all_entities(areas):
+def get_all_damper_and_temperature_entities(areas):
     """Get all entities."""
     return sorted(
         [

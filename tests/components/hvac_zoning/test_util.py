@@ -7,7 +7,7 @@ from homeassistant.components.hvac_zoning.util import (
     determine_cover_services,
     determine_thermostat_target_temperature,
     filter_to_valid_areas,
-    get_all_entities,
+    get_all_damper_and_temperature_entities,
     get_thermostat_entities,
     reformat_and_filter_to_valid_areas,
 )
@@ -52,55 +52,49 @@ def test_reformat_and_filter_to_valid_areas() -> None:
     }
 
 
-def test_filter_to_valid_areas_missing_temperature() -> None:
-    """Test filter to valid areas missing temperature."""
-    user_input = {
-        "damper": {
-            "basement": [
-                "cover.basement_west_vent",
-                "cover.basement_northeast_vent",
-                "cover.basement_southeast_vent",
-            ],
-            "guest_bedroom": ["cover.guest_bedroom_vent"],
-            "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
-        },
-        "temperature": {
-            "basement": "sensor.basement_temperature",
-            "guest_bedroom": "sensor.guest_bedroom_temperature",
-        },
-    }
-
+@pytest.mark.parametrize(
+    ("user_input", "expected_areas"),
+    [
+        (
+            {
+                "damper": {
+                    "basement": [
+                        "cover.basement_west_vent",
+                    ],
+                    "guest_bedroom": ["cover.guest_bedroom_vent"],
+                    "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
+                },
+                "temperature": {
+                    "basement": "sensor.basement_temperature",
+                    "guest_bedroom": "sensor.guest_bedroom_temperature",
+                },
+            },
+            ["basement", "guest_bedroom"],
+        ),
+        (
+            {
+                "damper": {
+                    "guest_bedroom": ["cover.guest_bedroom_vent"],
+                    "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
+                },
+                "temperature": {
+                    "main_floor": "sensor.main_floor_temperature",
+                    "guest_bedroom": "sensor.guest_bedroom_temperature",
+                    "upstairs_bathroom": "sensor.upstairs_bathroom_temperature",
+                },
+            },
+            ["guest_bedroom", "upstairs_bathroom"],
+        ),
+    ],
+)
+def test_filter_to_valid_areas(user_input, expected_areas) -> None:
+    """Test filter to valid areas."""
     areas = filter_to_valid_areas(user_input)
 
-    assert areas == [
-        "basement",
-        "guest_bedroom",
-    ]
+    assert areas == expected_areas
 
 
-def test_filter_to_valid_areas_missing_damper() -> None:
-    """Test filter to valid areas missing damper."""
-    user_input = {
-        "damper": {
-            "guest_bedroom": ["cover.guest_bedroom_vent"],
-            "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
-        },
-        "temperature": {
-            "main_floor": "sensor.main_floor_temperature",
-            "guest_bedroom": "sensor.guest_bedroom_temperature",
-            "upstairs_bathroom": "sensor.upstairs_bathroom_temperature",
-        },
-    }
-
-    areas = filter_to_valid_areas(user_input)
-
-    assert areas == [
-        "guest_bedroom",
-        "upstairs_bathroom",
-    ]
-
-
-def test_get_all_entities() -> None:
+def test_get_all_damper_and_temperature_entities() -> None:
     """Test get all entities."""
     areas = {
         "basement": {
@@ -138,7 +132,7 @@ def test_get_all_entities() -> None:
         },
     }
 
-    entities = get_all_entities(areas)
+    entities = get_all_damper_and_temperature_entities(areas)
 
     assert entities == [
         "cover.basement_northeast_vent",
@@ -164,31 +158,6 @@ def test_get_all_entities() -> None:
 def test_get_thermostat_entities() -> None:
     """Test get thermostat entities."""
     user_input = {
-        "damper": {
-            "main_floor": [
-                "cover.living_room_northeast_vent",
-                "cover.living_room_southeast_vent",
-                "cover.kitchen_south_vent",
-                "cover.kitchen_northwest_vent",
-            ],
-            "basement": [
-                "cover.basement_west_vent",
-                "cover.basement_northeast_vent",
-                "cover.basement_southeast_vent",
-            ],
-            "master_bedroom": ["cover.master_bedroom_vent"],
-            "guest_bedroom": ["cover.guest_bedroom_vent"],
-            "office": ["cover.office_vent"],
-            "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
-        },
-        "temperature": {
-            "main_floor": "sensor.main_floor_temperature",
-            "basement": "sensor.basement_temperature",
-            "master_bedroom": "sensor.master_bedroom_temperature",
-            "guest_bedroom": "sensor.guest_bedroom_temperature",
-            "office": "sensor.office_temperature",
-            "upstairs_bathroom": "sensor.upstairs_bathroom_temperature",
-        },
         "climate": {"main_floor": "climate.living_room_thermostat"},
     }
 
@@ -223,251 +192,113 @@ def test_determine_cover_service(
     assert service == expected_service
 
 
-def test_determine_cover_services_move_to_heating_open_greater_than() -> None:
-    """Determine cover services move to heating open greater than."""
-    hvac_mode = HVACMode.HEAT
-    rooms = {
-        "basement": {
-            "target_temperature": 72,
-            "actual_temperature": 71,
-        }
-    }
-
+@pytest.mark.parametrize(
+    ("hvac_mode", "rooms", "expected_services"),
+    [
+        (
+            HVACMode.HEAT,
+            {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+            [SERVICE_OPEN_COVER],
+        ),
+        (
+            HVACMode.HEAT,
+            {
+                "basement": {"target_temperature": 72, "actual_temperature": 71},
+                "office": {"target_temperature": 72, "actual_temperature": 71},
+            },
+            [SERVICE_OPEN_COVER, SERVICE_OPEN_COVER],
+        ),
+        (
+            HVACMode.HEAT,
+            {
+                "basement": {"target_temperature": 72, "actual_temperature": 71},
+                "office": {"target_temperature": 71, "actual_temperature": 72},
+            },
+            [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER],
+        ),
+        (
+            HVACMode.HEAT,
+            {
+                "basement": {"target_temperature": 71, "actual_temperature": 72},
+                "office": {"target_temperature": 71, "actual_temperature": 72},
+            },
+            [SERVICE_CLOSE_COVER, SERVICE_CLOSE_COVER],
+        ),
+        (
+            HVACMode.HEAT,
+            {"basement": {"target_temperature": 71, "actual_temperature": 71}},
+            [SERVICE_CLOSE_COVER],
+        ),
+        (
+            HVACMode.HEAT,
+            {"basement": {"target_temperature": 71, "actual_temperature": 72}},
+            [SERVICE_CLOSE_COVER],
+        ),
+        (
+            HVACMode.COOL,
+            {"basement": {"target_temperature": 71, "actual_temperature": 72}},
+            [SERVICE_OPEN_COVER],
+        ),
+        (
+            HVACMode.COOL,
+            {"basement": {"target_temperature": 71, "actual_temperature": 71}},
+            [SERVICE_CLOSE_COVER],
+        ),
+        (
+            HVACMode.COOL,
+            {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+            [SERVICE_CLOSE_COVER],
+        ),
+        (
+            HVACMode.HEAT_COOL,
+            {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+            [],
+        ),
+        (
+            HVACMode.OFF,
+            {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+            [],
+        ),
+    ],
+)
+def test_determine_cover_services(hvac_mode, rooms, expected_services) -> None:
+    """Test determine cover services."""
     cover_services = determine_cover_services(rooms, hvac_mode)
 
-    assert cover_services == [SERVICE_OPEN_COVER]
+    assert cover_services == expected_services
 
 
-# def test_determine_cover_services_move_to_heating_open_greater_than_multiple_rooms_same() -> None:
-#     """Determine cover services move to heating open greater than multiple rooms."""
-#     hvac_mode = HVACMode.HEAT
-#     rooms = {
-#         "basement": {
-#             "target_temperature": 72,
-#             "actual_temperature": 71,
-#         },
-#         "office": {
-#             "target_temperature": 72,
-#             "actual_temperature": 71,
-#         }
-#     }
-
-#     cover_services = determine_cover_services(rooms, hvac_mode)
-
-#     assert cover_services == [SERVICE_OPEN_COVER, SERVICE_OPEN_COVER]
-
-# def test_determine_cover_services_move_to_heating_open_greater_than_multiple_rooms_different() -> None:
-#     """Determine cover services move to heating open greater than multiple rooms."""
-#     hvac_mode = HVACMode.HEAT
-#     rooms = {
-#         "basement": {
-#             "target_temperature": 72,
-#             "actual_temperature": 71,
-#         },
-#         "office": {
-#             "target_temperature": 71,
-#             "actual_temperature": 72,
-#         }
-#     }
-
-#     cover_services = determine_cover_services(rooms, hvac_mode)
-
-#     assert cover_services == [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER]
-
-
-def test_determine_cover_services_continue_heating_close_equal_to() -> None:
-    """Determine cover services continue heating close equal to."""
-    hvac_mode = HVACMode.HEAT
-    rooms = {
-        "basement": {
-            "target_temperature": 71,
-            "actual_temperature": 71,
-        }
-    }
-
-    cover_services = determine_cover_services(rooms, hvac_mode)
-
-    assert cover_services == [SERVICE_CLOSE_COVER]
-
-
-def test_determine_cover_services_stop_heating_close_less_than() -> None:
-    """Determine cover services stop heating close less than."""
-    hvac_mode = HVACMode.HEAT
-    rooms = {"basement": {"target_temperature": 71, "actual_temperature": 72}}
-
-    cover_services = determine_cover_services(rooms, hvac_mode)
-
-    assert cover_services == [SERVICE_CLOSE_COVER]
-
-
-def test_determine_cover_services_move_to_cooling_open_less_than() -> None:
-    """Determine cover services move to cooling open less than."""
-    hvac_mode = HVACMode.COOL
-    rooms = {
-        "basement": {
-            "target_temperature": 71,
-            "actual_temperature": 72,
-        }
-    }
-
-    cover_services = determine_cover_services(rooms, hvac_mode)
-
-    assert cover_services == [SERVICE_OPEN_COVER]
-
-
-def test_determine_cover_services_continue_cooling_close_equal_to() -> None:
-    """Determine cover services continue cooling close equal to."""
-    hvac_mode = HVACMode.COOL
-    rooms = {
-        "basement": {
-            "target_temperature": 71,
-            "actual_temperature": 71,
-        }
-    }
-
-    cover_services = determine_cover_services(rooms, hvac_mode)
-
-    assert cover_services == [SERVICE_CLOSE_COVER]
-
-
-def test_determine_cover_services_move_to_cooling_close_greater_than() -> None:
-    """Determine cover services move to cooling close greater than."""
-    hvac_mode = HVACMode.COOL
-    rooms = {
-        "basement": {
-            "target_temperature": 72,
-            "actual_temperature": 71,
-        }
-    }
-
-    cover_services = determine_cover_services(rooms, hvac_mode)
-
-    assert cover_services == [SERVICE_CLOSE_COVER]
-
-
-def test_determine_cover_services_do_nothing_heat_cool() -> None:
-    """Determine cover services do nothing heat cool."""
-    hvac_mode = HVACMode.HEAT_COOL
-    rooms = {
-        "basement": {
-            "target_temperature": 72,
-            "actual_temperature": 71,
-        }
-    }
-
-    cover_services = determine_cover_services(rooms, hvac_mode)
-
-    assert not cover_services
-
-
-def test_determine_cover_services_do_nothing_off() -> None:
-    """Determine cover services do nothing off."""
-    hvac_mode = HVACMode.OFF
-    rooms = {
-        "basement": {
-            "target_temperature": 72,
-            "actual_temperature": 71,
-        }
-    }
-
-    cover_services = determine_cover_services(rooms, hvac_mode)
-
-    assert not cover_services
-
-
-def test_determine_thermostat_target_temperature_move_to_heating() -> None:
-    """Determine thermostat target temperature move to heating."""
-    target_temperature = 70
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT
-    cover_services = [SERVICE_OPEN_COVER]
-
+@pytest.mark.parametrize(
+    (
+        "target_temperature",
+        "actual_temperature",
+        "hvac_mode",
+        "cover_services",
+        "expected_new_target_temperature",
+    ),
+    [
+        (70, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER], 72),
+        (72, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER], 72),
+        (72, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 72),
+        (71, 70, HVACMode.HEAT, [SERVICE_CLOSE_COVER], 68),
+        (70, 70, HVACMode.COOL, [SERVICE_OPEN_COVER], 68),
+        (70, 70, HVACMode.COOL, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 68),
+        (68, 70, HVACMode.COOL, [SERVICE_OPEN_COVER], 68),
+        (69, 70, HVACMode.COOL, [SERVICE_CLOSE_COVER], 72),
+        (68, 70, HVACMode.HEAT_COOL, [SERVICE_OPEN_COVER], 68),
+        (68, 70, HVACMode.HEAT_COOL, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 68),
+    ],
+)
+def test_determine_thermostat_target_temperature(
+    target_temperature,
+    actual_temperature,
+    hvac_mode,
+    cover_services,
+    expected_new_target_temperature,
+) -> None:
+    """Test determine thermostat target temperature."""
     new_thermostat_target_temperature = determine_thermostat_target_temperature(
         target_temperature, actual_temperature, hvac_mode, cover_services
     )
 
-    assert new_thermostat_target_temperature == 72
-
-
-def test_determine_thermostat_target_temperature_continue_heating() -> None:
-    """Determine thermostat target temperature continue heating."""
-    target_temperature = 72
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT
-    cover_services = [SERVICE_OPEN_COVER]
-
-    new_thermostat_target_temperature = determine_thermostat_target_temperature(
-        target_temperature, actual_temperature, hvac_mode, cover_services
-    )
-
-    assert new_thermostat_target_temperature == target_temperature
-
-
-def test_determine_thermostat_target_temperature_stop_heating() -> None:
-    """Determine thermostat target temperature stop heating."""
-    target_temperature = 71
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT
-    cover_services = [SERVICE_CLOSE_COVER]
-
-    new_thermostat_target_temperature = determine_thermostat_target_temperature(
-        target_temperature, actual_temperature, hvac_mode, cover_services
-    )
-
-    assert new_thermostat_target_temperature == 68
-
-
-def test_determine_thermostat_target_temperature_move_to_cooling() -> None:
-    """Test determine thermostat target temperature move to cooling."""
-    target_temperature = 70
-    actual_temperature = 70
-    hvac_mode = HVACMode.COOL
-    cover_services = [SERVICE_OPEN_COVER]
-
-    new_thermostat_target_temperature = determine_thermostat_target_temperature(
-        target_temperature, actual_temperature, hvac_mode, cover_services
-    )
-
-    assert new_thermostat_target_temperature == 68
-
-
-def test_determine_thermostat_target_temperature_continue_cooling() -> None:
-    """Test determine thermostat target temperature continue cooling."""
-    target_temperature = 68
-    actual_temperature = 70
-    hvac_mode = HVACMode.COOL
-    cover_services = [SERVICE_OPEN_COVER]
-
-    new_thermostat_target_temperature = determine_thermostat_target_temperature(
-        target_temperature, actual_temperature, hvac_mode, cover_services
-    )
-
-    assert new_thermostat_target_temperature == target_temperature
-
-
-def test_determine_thermostat_target_temperature_stop_cooling() -> None:
-    """Test determine thermostat target temperature stop cooling."""
-    target_temperature = 69
-    actual_temperature = 70
-    hvac_mode = HVACMode.COOL
-    cover_services = [SERVICE_CLOSE_COVER]
-
-    new_thermostat_target_temperature = determine_thermostat_target_temperature(
-        target_temperature, actual_temperature, hvac_mode, cover_services
-    )
-
-    assert new_thermostat_target_temperature == 72
-
-
-def test_determine_thermostat_target_temperature_continue_heat_cool() -> None:
-    """Test determine thermostat target temperature continue cooling."""
-    target_temperature = 68
-    actual_temperature = 70
-    hvac_mode = HVACMode.HEAT_COOL
-    cover_services = [SERVICE_OPEN_COVER]
-
-    new_thermostat_target_temperature = determine_thermostat_target_temperature(
-        target_temperature, actual_temperature, hvac_mode, cover_services
-    )
-
-    assert new_thermostat_target_temperature == target_temperature
+    assert new_thermostat_target_temperature == expected_new_target_temperature
