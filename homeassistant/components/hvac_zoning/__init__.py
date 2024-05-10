@@ -45,6 +45,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     #     # TO DO: Include main climate
     #     if event_type == "state_changed" and entity_id in entity_ids:
     #         print(f"event: {event_dict}")
+    #         entity_id = event_dict["data"]["entity_id"]
+    #         print(f"entity_id: {entity_id}")
+    #         print(f"hass.states: {hass.states}")
+    #         state = hass.states.get(entity_id)
+    #         print(f"hass.states.get: {state}")
+    #         target_temperature = state.attributes.get("temperature", 20.0)
+    #         print(f"target_temperature: {target_temperature}")
 
     #     # if (
     #     #     event_dict["event_type"] == "call_service"

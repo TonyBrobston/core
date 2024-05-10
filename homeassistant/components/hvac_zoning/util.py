@@ -1,4 +1,6 @@
 """File for utilities."""
+from homeassistant.components.climate import HVACMode
+from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
 
 
 def filter_to_valid_areas(user_input):
@@ -41,3 +43,20 @@ def get_all_entities(areas):
 def get_thermostat_entities(user_input):
     """Get thermostat."""
     return list(user_input["climate"].values())
+
+
+def determine_cover_service(
+    target_temperature: int, actual_temperature: int, hvac_mode: HVACMode
+) -> str:
+    """Determine cover service."""
+    if hvac_mode is None or target_temperature is None or actual_temperature is None:
+        return SERVICE_OPEN_COVER
+
+    if hvac_mode == HVACMode.HEAT:
+        if actual_temperature >= target_temperature:
+            return SERVICE_CLOSE_COVER
+    elif hvac_mode == HVACMode.COOL:
+        if actual_temperature <= target_temperature:
+            return SERVICE_CLOSE_COVER
+
+    return SERVICE_OPEN_COVER
