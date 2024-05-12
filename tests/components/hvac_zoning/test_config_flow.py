@@ -1,9 +1,10 @@
 """Test the HVAC Zoning config flow."""
-
+import pytest
 
 from homeassistant.components.hvac_zoning.config_flow import (
     filter_entities_to_device_class_and_map_to_entity_ids,
     filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict,
+    merge_user_input,
 )
 from homeassistant.helpers.entity_registry import RegistryEntry
 
@@ -277,3 +278,81 @@ def test_filter_entities_to_device_class_and_map_to_entity_names() -> None:
         "cover.basement_northeast_vent",
         "cover.basement_southeast_vent",
     ]
+
+
+@pytest.mark.parametrize(
+    ("config_entry", "user_input", "key", "expected_output"),
+    [
+        (
+            {},
+            {
+                "office": ["cover.office_vent"],
+                "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
+            },
+            "covers",
+            {
+                "office": {"covers": ["cover.office_vent"]},
+                "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+            },
+        ),
+        (
+            {
+                "office": {"covers": ["cover.office_vent"]},
+                "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+            },
+            {
+                "office": "sensor.office_temperature",
+                "upstairs_bathroom": "sensor.upstairs_bathroom_temperature",
+            },
+            "temperature",
+            {
+                "office": {
+                    "covers": ["cover.office_vent"],
+                    "temperature": "sensor.office_temperature",
+                },
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                },
+            },
+        ),
+        (
+            {
+                "main_floor": {
+                    "covers": [
+                        "cover.living_room_northeast_vent",
+                        "cover.living_room_southeast_vent",
+                        "cover.kitchen_south_vent",
+                        "cover.kitchen_northwest_vent",
+                    ],
+                    "temperature": "sensor.main_floor_temperature",
+                },
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                },
+            },
+            {"main_floor": "climate.living_room_thermostat"},
+            "climate",
+            {
+                "main_floor": {
+                    "covers": [
+                        "cover.living_room_northeast_vent",
+                        "cover.living_room_southeast_vent",
+                        "cover.kitchen_south_vent",
+                        "cover.kitchen_northwest_vent",
+                    ],
+                    "temperature": "sensor.main_floor_temperature",
+                    "climate": "climate.living_room_thermostat",
+                },
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                },
+            },
+        ),
+    ],
+)
+def test_merge_user_input(config_entry, user_input, key, expected_output) -> None:
+    """Test merge user inputs."""
+    assert merge_user_input(config_entry, user_input, key) == expected_output

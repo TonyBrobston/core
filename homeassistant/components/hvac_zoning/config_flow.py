@@ -102,6 +102,16 @@ async def build_schema(self, device_class, multiple):
     )
 
 
+def merge_user_input(converted_user_input, user_input, key):
+    """Merge user input."""
+    for room, value in user_input.items():
+        if room in converted_user_input:
+            converted_user_input[room][key] = value
+        else:
+            converted_user_input[room] = {key: value}
+    return converted_user_input
+
+
 class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HVAC Zoning."""
 
@@ -114,7 +124,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle selecting vents."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.init_info = {"damper": user_input}
+            self.init_info = user_input
             return await self.async_step_second()
 
         return self.async_show_form(
