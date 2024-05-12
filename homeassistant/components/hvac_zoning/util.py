@@ -1,6 +1,7 @@
 """File for utilities."""
 from homeassistant.components.climate import HVACMode
 from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
+from homeassistant.core import HomeAssistant
 
 from .const import SUPPORTED_HVAC_MODES
 
@@ -106,3 +107,10 @@ def determine_thermostat_target_temperature(
                 return cool_idle
 
     return target_temperature
+
+
+def name(hass: HomeAssistant):
+    """Fake docstring."""
+    state = hass.states.get("climate.basement_thermostat")
+    if state:
+        return state.attributes.get("temperature")

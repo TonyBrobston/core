@@ -50,7 +50,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     #         print(f"hass.states: {hass.states}")
     #         state = hass.states.get(entity_id)
     #         print(f"hass.states.get: {state}")
-    #         target_temperature = state.attributes.get("temperature", 20.0)
+    #         target_temperature = state.attributes.get("temperature")
     #         print(f"target_temperature: {target_temperature}")
 
     #     # if (

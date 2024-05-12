@@ -1,4 +1,6 @@
 """Test util."""
+from collections.abc import Callable
+
 import pytest
 
 from homeassistant.components.climate import HVACMode
@@ -9,9 +11,13 @@ from homeassistant.components.hvac_zoning.util import (
     filter_to_valid_areas,
     get_all_damper_and_temperature_entity_ids,
     get_thermostat_entities,
+    name,
     reformat_and_filter_to_valid_areas,
 )
 from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
+from homeassistant.core import HomeAssistant
+
+from tests.components.recorder.common import wait_recording_done
 
 
 def test_reformat_and_filter_to_valid_areas() -> None:
@@ -318,3 +324,31 @@ def test_determine_thermostat_target_temperature(
     )
 
     assert new_thermostat_target_temperature == expected_new_target_temperature
+
+
+def test_foo(hass_recorder: Callable[..., HomeAssistant]) -> None:
+    """Test foo."""
+    # We need to write a test that drives into a hass.state.get on the climate entity id, then pull out the mode
+    # then we need to do a hass.state.get for all cover entities and build them into a dict like the one below
+    # then pass both of these things into determine_cover_services, then hass.services.call based on the output
+    # of determine_cover_services
+    # HVACMode.HEAT,
+    # {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+    hass = hass_recorder()
+    hass.states.set(
+        entity_id="climate.basement_thermostat",
+        new_state="unknown",
+        attributes={
+            "hvac_modes": [],
+            "min_temp": 45,
+            "max_temp": 95,
+            "current_temperature": None,
+            "temperature": 69,
+            "friendly_name": "basement_thermostat",
+            "supported_features": 1,
+        },
+    )
+    # hass.states.set("climate.basement_thermostat", 70)
+    wait_recording_done(hass)
+    derp = name(hass)
+    assert derp == 69
