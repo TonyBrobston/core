@@ -110,8 +110,15 @@ def determine_thermostat_target_temperature(
     return target_temperature
 
 
-def name(hass: HomeAssistant, config_entry: ConfigEntry):
-    """Fake docstring."""
-    state = hass.states.get("climate.basement_thermostat")
+def adjust_covers(hass: HomeAssistant, config_entry: ConfigEntry):
+    """Adjust covers."""
+    # data = config_entry.as_dict()["data"]
+    # print(f"reformatted data: {reformat_and_filter_to_valid_areas(data)}")
+    state = hass.states.get("climate.living_room_thermostat")
     if state:
         return state.attributes.get("temperature")
+
+
+def build_room_temperature_dict(hass: HomeAssistant, formatted_user_input):
+    """Build room temperature dict."""
+    return None

@@ -6,13 +6,14 @@ import pytest
 from homeassistant.components.climate import HVACMode
 from homeassistant.components.hvac_zoning.const import DOMAIN
 from homeassistant.components.hvac_zoning.util import (
+    adjust_covers,
+    build_room_temperature_dict,
     determine_cover_service,
     determine_cover_services,
     determine_thermostat_target_temperature,
     filter_to_valid_areas,
     get_all_damper_and_temperature_entity_ids,
     get_thermostat_entities,
-    name,
     reformat_and_filter_to_valid_areas,
 )
 from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
@@ -328,8 +329,42 @@ def test_determine_thermostat_target_temperature(
     assert new_thermostat_target_temperature == expected_new_target_temperature
 
 
-def test_foo(hass_recorder: Callable[..., HomeAssistant]) -> None:
-    """Test foo."""
+def test_build_room_temperature_dict(
+    hass_recorder: Callable[..., HomeAssistant],
+) -> None:
+    """Test build room temperature dict."""
+    area = "master_bedroom"
+    thermostat_entity_id = area + "thermostat"
+    temperature_entity_id = "sensor." + area + "_temperature"
+    formatted_user_input = {area: {"temperature": temperature_entity_id}}
+    hass = hass_recorder()
+    target_temperature = 69
+    hass.states.set(
+        entity_id=thermostat_entity_id,
+        new_state="unknown",
+        attributes={
+            "temperature": target_temperature,
+        },
+    )
+    actual_temperature = 70
+    hass.states.set(
+        entity_id=temperature_entity_id,
+        new_state=actual_temperature,
+    )
+    wait_recording_done(hass)
+
+    room_temperature_dict = build_room_temperature_dict(hass, formatted_user_input)
+
+    assert room_temperature_dict == {
+        "master_bedroom": {
+            "target_temperature": target_temperature,
+            "actual_temperature": actual_temperature,
+        }
+    }
+
+
+def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant]) -> None:
+    """Test adjust covers."""
     # We need to write a test that drives into a hass.state.get on the climate entity id, then pull out the mode
     # then we need to do a hass.state.get for all cover entities and build them into a dict like the one below
     # then pass both of these things into determine_cover_services, then hass.services.call based on the output
@@ -337,34 +372,39 @@ def test_foo(hass_recorder: Callable[..., HomeAssistant]) -> None:
     # HVACMode.HEAT,
     # {"basement": {"target_temperature": 72, "actual_temperature": 71}},
     hass = hass_recorder()
-    hass.states.set(
-        entity_id="climate.basement_thermostat",
-        new_state="unknown",
-        attributes={
-            "temperature": 69,
-        },
-    )
-    user_input = {
+    thermostat_entity_id = "climate.living_room_thermostat"
+    cover_entity_id = "cover.master_bedroom_vent"
+    temperature_entity_id = "sensor.master_bedroom_temperature"
+    data = {
         "damper": {
-            "main_floor": [
-                "cover.living_room_northeast_vent",
-                "cover.living_room_southeast_vent",
-                "cover.kitchen_south_vent",
-                "cover.kitchen_northwest_vent",
-            ],
-            "master_bedroom": ["cover.master_bedroom_vent"],
+            "master_bedroom": [cover_entity_id],
         },
         "temperature": {
-            "main_floor": "sensor.main_floor_temperature",
-            "master_bedroom": "sensor.master_bedroom_temperature",
+            "master_bedroom": temperature_entity_id,
         },
-        "climate": {"main_floor": "climate.living_room_thermostat"},
+        "climate": {"main_floor": thermostat_entity_id},
     }
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         # unique_id="123456",
-        data=user_input,
+        data=data,
+    )
+    hass.states.set(
+        entity_id=thermostat_entity_id,
+        new_state="unknown",
+        attributes={
+            "temperature": 69,
+            "hvac_mode": "heat",
+        },
+    )
+    hass.states.set(
+        entity_id=cover_entity_id,
+        new_state="open",
+    )
+    hass.states.set(
+        entity_id=temperature_entity_id,
+        new_state="70",
     )
     wait_recording_done(hass)
-    derp = name(hass, config_entry)
+    derp = adjust_covers(hass, config_entry)
     assert derp == 69
