@@ -4,6 +4,7 @@ from collections.abc import Callable
 import pytest
 
 from homeassistant.components.climate import HVACMode
+from homeassistant.components.hvac_zoning.const import DOMAIN
 from homeassistant.components.hvac_zoning.util import (
     determine_cover_service,
     determine_cover_services,
@@ -17,6 +18,7 @@ from homeassistant.components.hvac_zoning.util import (
 from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
 from homeassistant.core import HomeAssistant
 
+from tests.common import MockConfigEntry
 from tests.components.recorder.common import wait_recording_done
 
 
@@ -339,16 +341,30 @@ def test_foo(hass_recorder: Callable[..., HomeAssistant]) -> None:
         entity_id="climate.basement_thermostat",
         new_state="unknown",
         attributes={
-            "hvac_modes": [],
-            "min_temp": 45,
-            "max_temp": 95,
-            "current_temperature": None,
             "temperature": 69,
-            "friendly_name": "basement_thermostat",
-            "supported_features": 1,
         },
     )
-    # hass.states.set("climate.basement_thermostat", 70)
+    user_input = {
+        "damper": {
+            "main_floor": [
+                "cover.living_room_northeast_vent",
+                "cover.living_room_southeast_vent",
+                "cover.kitchen_south_vent",
+                "cover.kitchen_northwest_vent",
+            ],
+            "master_bedroom": ["cover.master_bedroom_vent"],
+        },
+        "temperature": {
+            "main_floor": "sensor.main_floor_temperature",
+            "master_bedroom": "sensor.master_bedroom_temperature",
+        },
+        "climate": {"main_floor": "climate.living_room_thermostat"},
+    }
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        # unique_id="123456",
+        data=user_input,
+    )
     wait_recording_done(hass)
-    derp = name(hass)
+    derp = name(hass, config_entry)
     assert derp == 69
