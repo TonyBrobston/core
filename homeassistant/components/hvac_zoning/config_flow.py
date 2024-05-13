@@ -136,7 +136,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle selecting vents."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.init_info = user_input
+            self.init_info = merge_user_input(self.init_info, user_input, "covers")
             return await self.async_step_second()
 
         return self.async_show_form(
@@ -151,10 +151,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle selecting temperature sensors."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.init_info = {
-                **self.init_info,
-                "temperature": user_input,
-            }
+            self.init_info = merge_user_input(self.init_info, user_input, "temperature")
             return await self.async_step_third()
 
         return self.async_show_form(
@@ -169,10 +166,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle selecting the thermostat."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.init_info = {
-                **self.init_info,
-                "climate": user_input,
-            }
+            self.init_info = merge_user_input(self.init_info, user_input, "climate")
             return self.async_create_entry(
                 title=DOMAIN,
                 data=self.init_info,
