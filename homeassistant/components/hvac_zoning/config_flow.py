@@ -102,14 +102,26 @@ async def build_schema(self, device_class, multiple):
     )
 
 
-def merge_user_input(converted_user_input, user_input, key):
+# def convert_initial_user_input(user_input):
+#     """Convert initial user input."""
+#     return {room: {"covers": covers} for room, covers in user_input.items()}
+
+
+def get_all_rooms(user_input1, user_input2):
+    """Get all rooms."""
+    return sorted(set(user_input1.keys()).union(user_input2.keys()))
+
+
+def merge_user_input(config_entry, user_input, key):
     """Merge user input."""
-    for room, value in user_input.items():
-        if room in converted_user_input:
-            converted_user_input[room][key] = value
-        else:
-            converted_user_input[room] = {key: value}
-    return converted_user_input
+    rooms = get_all_rooms(config_entry, user_input)
+    return {
+        room: {
+            **config_entry.get(room, {}),
+            **({key: user_input.get(room)} if user_input.get(room) else {}),
+        }
+        for room in rooms
+    }
 
 
 class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):

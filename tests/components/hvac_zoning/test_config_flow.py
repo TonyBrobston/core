@@ -4,6 +4,7 @@ import pytest
 from homeassistant.components.hvac_zoning.config_flow import (
     filter_entities_to_device_class_and_map_to_entity_ids,
     filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict,
+    get_all_rooms,
     merge_user_input,
 )
 from homeassistant.helpers.entity_registry import RegistryEntry
@@ -281,6 +282,49 @@ def test_filter_entities_to_device_class_and_map_to_entity_names() -> None:
 
 
 @pytest.mark.parametrize(
+    ("user_input1", "user_input2", "expected_output"),
+    [
+        (
+            {
+                "main_floor": {
+                    "covers": [
+                        "cover.living_room_northeast_vent",
+                    ],
+                    "temperature": "sensor.main_floor_temperature",
+                },
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                },
+            },
+            {"main_floor": "climate.living_room_thermostat"},
+            ["main_floor", "upstairs_bathroom"],
+        ),
+        (
+            {"main_floor": {"climate": "climate.living_room_thermostat"}},
+            {
+                "main_floor": {
+                    "covers": [
+                        "cover.living_room_northeast_vent",
+                    ],
+                    "temperature": "sensor.main_floor_temperature",
+                },
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                },
+            },
+            ["main_floor", "upstairs_bathroom"],
+        ),
+    ],
+)
+def test_get_all_rooms(user_input1, user_input2, expected_output) -> None:
+    """Test get all rooms."""
+    rooms = get_all_rooms(user_input1, user_input2)
+    assert rooms == expected_output
+
+
+@pytest.mark.parametrize(
     ("config_entry", "user_input", "key", "expected_output"),
     [
         (
@@ -321,9 +365,6 @@ def test_filter_entities_to_device_class_and_map_to_entity_names() -> None:
                 "main_floor": {
                     "covers": [
                         "cover.living_room_northeast_vent",
-                        "cover.living_room_southeast_vent",
-                        "cover.kitchen_south_vent",
-                        "cover.kitchen_northwest_vent",
                     ],
                     "temperature": "sensor.main_floor_temperature",
                 },
@@ -332,18 +373,17 @@ def test_filter_entities_to_device_class_and_map_to_entity_names() -> None:
                     "temperature": "sensor.upstairs_bathroom_temperature",
                 },
             },
-            {"main_floor": "climate.living_room_thermostat"},
+            {
+                "main_floor": "climate.living_room_thermostat",
+            },
             "climate",
             {
                 "main_floor": {
+                    "climate": "climate.living_room_thermostat",
                     "covers": [
                         "cover.living_room_northeast_vent",
-                        "cover.living_room_southeast_vent",
-                        "cover.kitchen_south_vent",
-                        "cover.kitchen_northwest_vent",
                     ],
                     "temperature": "sensor.main_floor_temperature",
-                    "climate": "climate.living_room_thermostat",
                 },
                 "upstairs_bathroom": {
                     "covers": ["cover.upstairs_bathroom_vent"],
