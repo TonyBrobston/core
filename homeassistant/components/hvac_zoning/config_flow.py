@@ -89,14 +89,15 @@ async def build_schema(self, device_class, multiple):
     return vol.Schema(
         {
             vol.Optional(
-                area.id, default=await get_defaults(self, area, device_class, multiple)
+                f"area_{index}",
+                default=await get_defaults(self, area, device_class, multiple),
             ): SelectSelector(
                 SelectSelectorConfig(
                     options=await get_options(self, area, device_class),
                     multiple=multiple,
                 )
             )
-            for area in areas
+            for index, area in enumerate(areas)
             if len(await get_options(self, area, device_class)) != 0
         },
     )
