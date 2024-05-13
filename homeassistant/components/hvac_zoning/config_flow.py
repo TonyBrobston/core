@@ -102,11 +102,6 @@ async def build_schema(self, device_class, multiple):
     )
 
 
-# def convert_initial_user_input(user_input):
-#     """Convert initial user input."""
-#     return {room: {"covers": covers} for room, covers in user_input.items()}
-
-
 def get_all_rooms(user_input1, user_input2):
     """Get all rooms."""
     return sorted(set(user_input1.keys()).union(user_input2.keys()))
