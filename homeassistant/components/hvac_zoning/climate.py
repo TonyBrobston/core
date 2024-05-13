@@ -10,8 +10,6 @@ from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .util import reformat_and_filter_to_valid_areas
-
 
 class Thermostat(ClimateEntity):
     """Thermostat."""
@@ -44,8 +42,5 @@ async def async_setup_entry(
     user_input = config_entry.as_dict()["data"]
 
     async_add_entities(
-        [
-            Thermostat(area_name + "_thermostat")
-            for area_name in reformat_and_filter_to_valid_areas(user_input)
-        ]
+        [Thermostat(area_name + "_thermostat") for area_name in user_input]
     )

@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "data": {},
-        "description": "Choose which Vents/Dampers you would like to use for these Areas."
+        "description": "Choose which Smart Vents you would like to use for these Areas."
       },
       "second": {
         "data": {},
@@ -12,11 +12,6 @@
       "third": {
         "data": {},
         "description": "Choose your Thermostat."
-      },
-      "fourth": {
-        "data": {
-          "question": "Create one Virtual Thermostat per room?"
-        }
       }
     },
     "error": {
