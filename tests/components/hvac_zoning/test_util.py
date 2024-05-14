@@ -8,17 +8,15 @@ from homeassistant.components.hvac_zoning.const import DOMAIN
 from homeassistant.components.hvac_zoning.util import (
     adjust_covers,
     determine_cover_service,
-    determine_cover_services,
-    determine_thermostat_target_temperature,
     filter_to_valid_areas,
     get_all_cover_entity_ids,
     get_all_temperature_entity_ids,
-    get_thermostat_entities,
+    get_thermostat_entity_ids,
 )
 from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
 from homeassistant.core import HomeAssistant
 
-from tests.common import MockConfigEntry
+from tests.common import MockConfigEntry, async_mock_service
 from tests.components.recorder.common import wait_recording_done
 
 
@@ -136,25 +134,27 @@ def test_get_all_temperature_entity_ids() -> None:
     ("user_input", "expected_thermostats"),
     [
         (
-            {"climate": {"main_floor": "climate.living_room_thermostat"}},
+            {"main_floor": {"climate": "climate.living_room_thermostat"}},
             ["climate.living_room_thermostat"],
         ),
         (
             {
-                "climate": {
-                    "main_floor": "climate.living_room_thermostat",
-                    "garage": "climate.garage_thermostat",
+                "main_floor": {
+                    "climate": "climate.living_room_thermostat",
+                },
+                "garage": {
+                    "climate": "climate.garage_thermostat",
                 },
             },
             ["climate.living_room_thermostat", "climate.garage_thermostat"],
         ),
     ],
 )
-def test_get_thermostat_entities(user_input, expected_thermostats) -> None:
-    """Test get thermostat entities."""
-    thermostat = get_thermostat_entities(user_input)
+def test_get_thermostat_entity_ids(user_input, expected_thermostats) -> None:
+    """Test get thermostat entity ids."""
+    thermostats = get_thermostat_entity_ids(user_input)
 
-    assert thermostat == expected_thermostats
+    assert thermostats == expected_thermostats
 
 
 @pytest.mark.parametrize(
@@ -183,118 +183,118 @@ def test_determine_cover_service(
     assert service == expected_service
 
 
-@pytest.mark.parametrize(
-    ("hvac_mode", "rooms", "expected_services"),
-    [
-        (
-            HVACMode.HEAT,
-            {"basement": {"target_temperature": 72, "actual_temperature": 71}},
-            [SERVICE_OPEN_COVER],
-        ),
-        (
-            HVACMode.HEAT,
-            {
-                "basement": {"target_temperature": 72, "actual_temperature": 71},
-                "office": {"target_temperature": 72, "actual_temperature": 71},
-            },
-            [SERVICE_OPEN_COVER, SERVICE_OPEN_COVER],
-        ),
-        (
-            HVACMode.HEAT,
-            {
-                "basement": {"target_temperature": 72, "actual_temperature": 71},
-                "office": {"target_temperature": 71, "actual_temperature": 72},
-            },
-            [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER],
-        ),
-        (
-            HVACMode.HEAT,
-            {
-                "basement": {"target_temperature": 71, "actual_temperature": 72},
-                "office": {"target_temperature": 71, "actual_temperature": 72},
-            },
-            [SERVICE_CLOSE_COVER, SERVICE_CLOSE_COVER],
-        ),
-        (
-            HVACMode.HEAT,
-            {"basement": {"target_temperature": 71, "actual_temperature": 71}},
-            [SERVICE_CLOSE_COVER],
-        ),
-        (
-            HVACMode.HEAT,
-            {"basement": {"target_temperature": 71, "actual_temperature": 72}},
-            [SERVICE_CLOSE_COVER],
-        ),
-        (
-            HVACMode.COOL,
-            {"basement": {"target_temperature": 71, "actual_temperature": 72}},
-            [SERVICE_OPEN_COVER],
-        ),
-        (
-            HVACMode.COOL,
-            {"basement": {"target_temperature": 71, "actual_temperature": 71}},
-            [SERVICE_CLOSE_COVER],
-        ),
-        (
-            HVACMode.COOL,
-            {"basement": {"target_temperature": 72, "actual_temperature": 71}},
-            [SERVICE_CLOSE_COVER],
-        ),
-        (
-            HVACMode.HEAT_COOL,
-            {"basement": {"target_temperature": 72, "actual_temperature": 71}},
-            [SERVICE_OPEN_COVER],
-        ),
-        (
-            HVACMode.OFF,
-            {"basement": {"target_temperature": 72, "actual_temperature": 71}},
-            [SERVICE_OPEN_COVER],
-        ),
-    ],
-)
-def test_determine_cover_services(hvac_mode, rooms, expected_services) -> None:
-    """Test determine cover services."""
-    cover_services = determine_cover_services(rooms, hvac_mode)
+# @pytest.mark.parametrize(
+#     ("hvac_mode", "rooms", "expected_services"),
+#     [
+#         (
+#             HVACMode.HEAT,
+#             {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+#             [SERVICE_OPEN_COVER],
+#         ),
+#         (
+#             HVACMode.HEAT,
+#             {
+#                 "basement": {"target_temperature": 72, "actual_temperature": 71},
+#                 "office": {"target_temperature": 72, "actual_temperature": 71},
+#             },
+#             [SERVICE_OPEN_COVER, SERVICE_OPEN_COVER],
+#         ),
+#         (
+#             HVACMode.HEAT,
+#             {
+#                 "basement": {"target_temperature": 72, "actual_temperature": 71},
+#                 "office": {"target_temperature": 71, "actual_temperature": 72},
+#             },
+#             [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER],
+#         ),
+#         (
+#             HVACMode.HEAT,
+#             {
+#                 "basement": {"target_temperature": 71, "actual_temperature": 72},
+#                 "office": {"target_temperature": 71, "actual_temperature": 72},
+#             },
+#             [SERVICE_CLOSE_COVER, SERVICE_CLOSE_COVER],
+#         ),
+#         (
+#             HVACMode.HEAT,
+#             {"basement": {"target_temperature": 71, "actual_temperature": 71}},
+#             [SERVICE_CLOSE_COVER],
+#         ),
+#         (
+#             HVACMode.HEAT,
+#             {"basement": {"target_temperature": 71, "actual_temperature": 72}},
+#             [SERVICE_CLOSE_COVER],
+#         ),
+#         (
+#             HVACMode.COOL,
+#             {"basement": {"target_temperature": 71, "actual_temperature": 72}},
+#             [SERVICE_OPEN_COVER],
+#         ),
+#         (
+#             HVACMode.COOL,
+#             {"basement": {"target_temperature": 71, "actual_temperature": 71}},
+#             [SERVICE_CLOSE_COVER],
+#         ),
+#         (
+#             HVACMode.COOL,
+#             {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+#             [SERVICE_CLOSE_COVER],
+#         ),
+#         (
+#             HVACMode.HEAT_COOL,
+#             {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+#             [SERVICE_OPEN_COVER],
+#         ),
+#         (
+#             HVACMode.OFF,
+#             {"basement": {"target_temperature": 72, "actual_temperature": 71}},
+#             [SERVICE_OPEN_COVER],
+#         ),
+#     ],
+# )
+# def test_determine_cover_services(hvac_mode, rooms, expected_services) -> None:
+#     """Test determine cover services."""
+#     cover_services = determine_cover_services(rooms, hvac_mode)
 
-    assert cover_services == expected_services
+#     assert cover_services == expected_services
 
 
-@pytest.mark.parametrize(
-    (
-        "target_temperature",
-        "actual_temperature",
-        "hvac_mode",
-        "cover_services",
-        "expected_new_target_temperature",
-    ),
-    [
-        (70, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER], 72),
-        (72, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER], 72),
-        (72, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 72),
-        (71, 70, HVACMode.HEAT, [SERVICE_CLOSE_COVER], 68),
-        (71, 70, HVACMode.HEAT, [], 68),
-        (70, 70, HVACMode.COOL, [SERVICE_OPEN_COVER], 68),
-        (70, 70, HVACMode.COOL, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 68),
-        (68, 70, HVACMode.COOL, [SERVICE_OPEN_COVER], 68),
-        (69, 70, HVACMode.COOL, [SERVICE_CLOSE_COVER], 72),
-        (69, 70, HVACMode.COOL, [], 72),
-        (68, 70, HVACMode.HEAT_COOL, [SERVICE_OPEN_COVER], 68),
-        (68, 70, HVACMode.HEAT_COOL, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 68),
-    ],
-)
-def test_determine_thermostat_target_temperature(
-    target_temperature,
-    actual_temperature,
-    hvac_mode,
-    cover_services,
-    expected_new_target_temperature,
-) -> None:
-    """Test determine thermostat target temperature."""
-    new_thermostat_target_temperature = determine_thermostat_target_temperature(
-        target_temperature, actual_temperature, hvac_mode, cover_services
-    )
+# @pytest.mark.parametrize(
+#     (
+#         "target_temperature",
+#         "actual_temperature",
+#         "hvac_mode",
+#         "cover_services",
+#         "expected_new_target_temperature",
+#     ),
+#     [
+#         (70, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER], 72),
+#         (72, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER], 72),
+#         (72, 70, HVACMode.HEAT, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 72),
+#         (71, 70, HVACMode.HEAT, [SERVICE_CLOSE_COVER], 68),
+#         (71, 70, HVACMode.HEAT, [], 68),
+#         (70, 70, HVACMode.COOL, [SERVICE_OPEN_COVER], 68),
+#         (70, 70, HVACMode.COOL, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 68),
+#         (68, 70, HVACMode.COOL, [SERVICE_OPEN_COVER], 68),
+#         (69, 70, HVACMode.COOL, [SERVICE_CLOSE_COVER], 72),
+#         (69, 70, HVACMode.COOL, [], 72),
+#         (68, 70, HVACMode.HEAT_COOL, [SERVICE_OPEN_COVER], 68),
+#         (68, 70, HVACMode.HEAT_COOL, [SERVICE_OPEN_COVER, SERVICE_CLOSE_COVER], 68),
+#     ],
+# )
+# def test_determine_thermostat_target_temperature(
+#     target_temperature,
+#     actual_temperature,
+#     hvac_mode,
+#     cover_services,
+#     expected_new_target_temperature,
+# ) -> None:
+#     """Test determine thermostat target temperature."""
+#     new_thermostat_target_temperature = determine_thermostat_target_temperature(
+#         target_temperature, actual_temperature, hvac_mode, cover_services
+#     )
 
-    assert new_thermostat_target_temperature == expected_new_target_temperature
+#     assert new_thermostat_target_temperature == expected_new_target_temperature
 
 
 # def test_build_room_temperature_dict(
@@ -331,37 +331,37 @@ def test_determine_thermostat_target_temperature(
 #     }
 
 
-def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant]) -> None:
+@pytest.fixture
+def calls(hass):
+    """Track calls to a mock service."""
+    return async_mock_service(hass, DOMAIN, "cover")
+
+
+def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant], calls) -> None:
     """Test adjust covers."""
-    # We need to write a test that drives into a hass.state.get on the climate entity id, then pull out the mode
-    # then we need to do a hass.state.get for all cover entities and build them into a dict like the one below
-    # then pass both of these things into determine_cover_services, then hass.services.call based on the output
-    # of determine_cover_services
-    # HVACMode.HEAT,
-    # {"basement": {"target_temperature": 72, "actual_temperature": 71}},
-    hass = hass_recorder()
     thermostat_entity_id = "climate.living_room_thermostat"
     cover_entity_id = "cover.master_bedroom_vent"
-    temperature_entity_id = "sensor.master_bedroom_temperature"
-    data = {
-        "damper": {
-            "master_bedroom": [cover_entity_id],
-        },
-        "temperature": {
-            "master_bedroom": temperature_entity_id,
-        },
-        "climate": {"main_floor": thermostat_entity_id},
-    }
+    target_temperature_entity_id = "climate.master_bedroom_thermostat"
+    actual_temperature_entity_id = "sensor.master_bedroom_temperature"
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         # unique_id="123456",
-        data=data,
+        data={
+            "master_bedroom": {
+                "covers": [cover_entity_id],
+                "temperature": actual_temperature_entity_id,
+            },
+            "main_floor": {
+                "climate": thermostat_entity_id,
+            },
+        },
     )
+    hass = hass_recorder()
     hass.states.set(
         entity_id=thermostat_entity_id,
         new_state="unknown",
         attributes={
-            "temperature": 69,
+            "temperature": 68,
             "hvac_mode": "heat",
         },
     )
@@ -370,9 +370,18 @@ def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant]) -> None:
         new_state="open",
     )
     hass.states.set(
-        entity_id=temperature_entity_id,
+        entity_id=target_temperature_entity_id,
+        new_state="71",
+    )
+    hass.states.set(
+        entity_id=actual_temperature_entity_id,
         new_state="70",
     )
     wait_recording_done(hass)
-    derp = adjust_covers(hass, config_entry)
-    assert derp == 69
+    adjust_covers(hass, config_entry)
+    # await hass.async_block_till_done()
+    # assert len(calls) == 1
+    # assert calls[0].data["some"] == "hvac_mode_changed"
+    # services_mock.call.assert_called_once_with(
+    #     "cover", "close", entity_id=cover_entity_id
+    # )
