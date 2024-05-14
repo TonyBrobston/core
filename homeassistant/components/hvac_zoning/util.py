@@ -28,17 +28,14 @@ def reformat_and_filter_to_valid_areas(user_input):
     }
 
 
-def get_all_damper_and_temperature_entity_ids(areas):
-    """Get all damper and temperature entity ids."""
-    return sorted(
-        [
-            entity
-            for area in areas.values()
-            for key, value in area.items()
-            for entity in (value if isinstance(value, list) else [value])
-            if isinstance(entity, str)
-        ]
-    )
+def get_all_cover_entity_ids(areas):
+    """Get all cover entity ids."""
+    return [cover for area in areas.values() for cover in area.get("covers", [])]
+
+
+def get_all_temperature_entity_ids(areas):
+    """Get all temperature entity ids."""
+    return [area["temperature"] for area in areas.values() if "temperature" in area]
 
 
 def get_thermostat_entities(user_input):

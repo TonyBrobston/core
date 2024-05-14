@@ -11,7 +11,8 @@ from homeassistant.components.hvac_zoning.util import (
     determine_cover_services,
     determine_thermostat_target_temperature,
     filter_to_valid_areas,
-    get_all_damper_and_temperature_entity_ids,
+    get_all_cover_entity_ids,
+    get_all_temperature_entity_ids,
     get_thermostat_entities,
 )
 from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
@@ -83,62 +84,49 @@ def test_filter_to_valid_areas(user_input, expected_areas) -> None:
     assert areas == expected_areas
 
 
-def test_get_all_damper_and_temperature_entity_ids() -> None:
-    """Test get all entities."""
+def test_get_all_cover_entity_ids() -> None:
+    """Test get all cover entities."""
     areas = {
         "basement": {
-            "damper": [
+            "covers": [
                 "cover.basement_west_vent",
                 "cover.basement_northeast_vent",
                 "cover.basement_southeast_vent",
             ],
             "temperature": "sensor.basement_temperature",
         },
-        "guest_bedroom": {
-            "damper": ["cover.guest_bedroom_vent"],
-            "temperature": "sensor.guest_bedroom_temperature",
-        },
-        "main_floor": {
-            "damper": [
-                "cover.living_room_northeast_vent",
-                "cover.living_room_southeast_vent",
-                "cover.kitchen_south_vent",
-                "cover.kitchen_northwest_vent",
-            ],
-            "temperature": "sensor.main_floor_temperature",
-        },
-        "master_bedroom": {
-            "damper": ["cover.master_bedroom_vent"],
-            "temperature": "sensor.master_bedroom_temperature",
-        },
-        "office": {
-            "damper": ["cover.office_vent"],
-            "temperature": "sensor.office_temperature",
-        },
         "upstairs_bathroom": {
-            "damper": ["cover.upstairs_bathroom_vent"],
+            "covers": ["cover.upstairs_bathroom_vent"],
             "temperature": "sensor.upstairs_bathroom_temperature",
         },
     }
 
-    entities = get_all_damper_and_temperature_entity_ids(areas)
+    entities = get_all_cover_entity_ids(areas)
 
     assert entities == [
+        "cover.basement_west_vent",
         "cover.basement_northeast_vent",
         "cover.basement_southeast_vent",
-        "cover.basement_west_vent",
-        "cover.guest_bedroom_vent",
-        "cover.kitchen_northwest_vent",
-        "cover.kitchen_south_vent",
-        "cover.living_room_northeast_vent",
-        "cover.living_room_southeast_vent",
-        "cover.master_bedroom_vent",
-        "cover.office_vent",
         "cover.upstairs_bathroom_vent",
-        "sensor.basement_temperature",
-        "sensor.guest_bedroom_temperature",
-        "sensor.main_floor_temperature",
-        "sensor.master_bedroom_temperature",
+    ]
+
+
+def test_get_all_temperature_entity_ids() -> None:
+    """Test get all temperature entities."""
+    areas = {
+        "office": {
+            "covers": ["cover.office_vent"],
+            "temperature": "sensor.office_temperature",
+        },
+        "upstairs_bathroom": {
+            "covers": ["cover.upstairs_bathroom_vent"],
+            "temperature": "sensor.upstairs_bathroom_temperature",
+        },
+    }
+
+    entities = get_all_temperature_entity_ids(areas)
+
+    assert entities == [
         "sensor.office_temperature",
         "sensor.upstairs_bathroom_temperature",
     ]
