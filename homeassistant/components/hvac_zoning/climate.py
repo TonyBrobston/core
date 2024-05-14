@@ -41,6 +41,7 @@ async def async_setup_entry(
 
     user_input = config_entry.as_dict()["data"]
 
+    [Thermostat(area_name + "_thermostat") for area_name in user_input]
     async_add_entities(
         [Thermostat(area_name + "_thermostat") for area_name in user_input]
     )

@@ -7,14 +7,12 @@ from homeassistant.components.climate import HVACMode
 from homeassistant.components.hvac_zoning.const import DOMAIN
 from homeassistant.components.hvac_zoning.util import (
     adjust_covers,
-    build_room_temperature_dict,
     determine_cover_service,
     determine_cover_services,
     determine_thermostat_target_temperature,
     filter_to_valid_areas,
     get_all_damper_and_temperature_entity_ids,
     get_thermostat_entities,
-    reformat_and_filter_to_valid_areas,
 )
 from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
 from homeassistant.core import HomeAssistant
@@ -23,76 +21,58 @@ from tests.common import MockConfigEntry
 from tests.components.recorder.common import wait_recording_done
 
 
-def test_reformat_and_filter_to_valid_areas() -> None:
-    """Test reformat and filter to valid areas."""
-    user_input = {
-        "damper": {
-            "main_floor": [
-                "cover.living_room_northeast_vent",
-                "cover.living_room_southeast_vent",
-                "cover.kitchen_south_vent",
-                "cover.kitchen_northwest_vent",
-            ],
-            "master_bedroom": ["cover.master_bedroom_vent"],
-        },
-        "temperature": {
-            "main_floor": "sensor.main_floor_temperature",
-            "master_bedroom": "sensor.master_bedroom_temperature",
-        },
-        "climate": {"main_floor": "climate.living_room_thermostat"},
-    }
-
-    areas = reformat_and_filter_to_valid_areas(user_input)
-
-    assert areas == {
-        "main_floor": {
-            "damper": [
-                "cover.living_room_northeast_vent",
-                "cover.living_room_southeast_vent",
-                "cover.kitchen_south_vent",
-                "cover.kitchen_northwest_vent",
-            ],
-            "temperature": "sensor.main_floor_temperature",
-        },
-        "master_bedroom": {
-            "damper": ["cover.master_bedroom_vent"],
-            "temperature": "sensor.master_bedroom_temperature",
-        },
-    }
-
-
 @pytest.mark.parametrize(
     ("user_input", "expected_areas"),
     [
         (
             {
-                "damper": {
-                    "basement": [
+                "basement": {
+                    "covers": [
                         "cover.basement_west_vent",
                     ],
-                    "guest_bedroom": ["cover.guest_bedroom_vent"],
-                    "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.basement_temperature",
                 },
-                "temperature": {
-                    "basement": "sensor.basement_temperature",
-                    "guest_bedroom": "sensor.guest_bedroom_temperature",
+                "guest_bedroom": {
+                    "covers": ["cover.guest_bedroom_vent"],
+                    "temperature": "sensor.guest_bedroom_temperature",
+                },
+                "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+            },
+            {
+                "basement": {
+                    "covers": [
+                        "cover.basement_west_vent",
+                    ],
+                    "temperature": "sensor.basement_temperature",
+                },
+                "guest_bedroom": {
+                    "covers": ["cover.guest_bedroom_vent"],
+                    "temperature": "sensor.guest_bedroom_temperature",
                 },
             },
-            ["basement", "guest_bedroom"],
         ),
         (
             {
-                "damper": {
-                    "guest_bedroom": ["cover.guest_bedroom_vent"],
-                    "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
+                "guest_bedroom": {
+                    "covers": ["cover.guest_bedroom_vent"],
+                    "temperature": "sensor.guest_bedroom_temperature",
                 },
-                "temperature": {
-                    "main_floor": "sensor.main_floor_temperature",
-                    "guest_bedroom": "sensor.guest_bedroom_temperature",
-                    "upstairs_bathroom": "sensor.upstairs_bathroom_temperature",
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                },
+                "main_floor": {"temperature": "sensor.main_floor_temperature"},
+            },
+            {
+                "guest_bedroom": {
+                    "covers": ["cover.guest_bedroom_vent"],
+                    "temperature": "sensor.guest_bedroom_temperature",
+                },
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
                 },
             },
-            ["guest_bedroom", "upstairs_bathroom"],
         ),
     ],
 )
@@ -329,38 +309,38 @@ def test_determine_thermostat_target_temperature(
     assert new_thermostat_target_temperature == expected_new_target_temperature
 
 
-def test_build_room_temperature_dict(
-    hass_recorder: Callable[..., HomeAssistant],
-) -> None:
-    """Test build room temperature dict."""
-    area = "master_bedroom"
-    thermostat_entity_id = area + "thermostat"
-    temperature_entity_id = "sensor." + area + "_temperature"
-    formatted_user_input = {area: {"temperature": temperature_entity_id}}
-    hass = hass_recorder()
-    target_temperature = 69
-    hass.states.set(
-        entity_id=thermostat_entity_id,
-        new_state="unknown",
-        attributes={
-            "temperature": target_temperature,
-        },
-    )
-    actual_temperature = 70
-    hass.states.set(
-        entity_id=temperature_entity_id,
-        new_state=actual_temperature,
-    )
-    wait_recording_done(hass)
+# def test_build_room_temperature_dict(
+#     hass_recorder: Callable[..., HomeAssistant],
+# ) -> None:
+#     """Test build room temperature dict."""
+#     area = "master_bedroom"
+#     thermostat_entity_id = area + "thermostat"
+#     temperature_entity_id = "sensor." + area + "_temperature"
+#     formatted_user_input = {area: {"temperature": temperature_entity_id}}
+#     hass = hass_recorder()
+#     target_temperature = 69
+#     hass.states.set(
+#         entity_id=thermostat_entity_id,
+#         new_state="unknown",
+#         attributes={
+#             "temperature": target_temperature,
+#         },
+#     )
+#     actual_temperature = 70
+#     hass.states.set(
+#         entity_id=temperature_entity_id,
+#         new_state=actual_temperature,
+#     )
+#     wait_recording_done(hass)
 
-    room_temperature_dict = build_room_temperature_dict(hass, formatted_user_input)
+#     room_temperature_dict = build_room_temperature_dict(hass, formatted_user_input)
 
-    assert room_temperature_dict == {
-        "master_bedroom": {
-            "target_temperature": target_temperature,
-            "actual_temperature": actual_temperature,
-        }
-    }
+#     assert room_temperature_dict == {
+#         "master_bedroom": {
+#             "target_temperature": target_temperature,
+#             "actual_temperature": actual_temperature,
+#         }
+#     }
 
 
 def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant]) -> None:

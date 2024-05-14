@@ -11,21 +11,12 @@ from homeassistant.components.cover import CoverDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.helpers.area_registry import AreaRegistry
-
-# from homeassistant.helpers.device_registry import DeviceRegistry, async_entries_for_area
 from homeassistant.helpers.entity_registry import EntityRegistry, async_entries_for_area
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
-
-
-# async def get_devices_for_area(self, area_id):
-#     """Get entities for area."""
-#     entityRegistry = DeviceRegistry(self.hass)
-#     await entityRegistry.async_load()
-#     return async_entries_for_area(entityRegistry, area_id)
 
 
 async def get_areas(self):

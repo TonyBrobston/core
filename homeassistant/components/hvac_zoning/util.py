@@ -9,14 +9,11 @@ from .const import SUPPORTED_HVAC_MODES
 
 def filter_to_valid_areas(user_input):
     """Filter to valid areas."""
-    return sorted(
-        {
-            area
-            for areas in user_input.values()
-            for area in areas
-            if area in user_input["temperature"] and area in user_input["damper"]
-        }
-    )
+    return {
+        area: devices
+        for area, devices in user_input.items()
+        if "temperature" in devices and "covers" in devices
+    }
 
 
 def reformat_and_filter_to_valid_areas(user_input):
