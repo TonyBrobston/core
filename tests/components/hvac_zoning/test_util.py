@@ -1,5 +1,6 @@
 """Test util."""
 from collections.abc import Callable
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -13,10 +14,15 @@ from homeassistant.components.hvac_zoning.util import (
     get_all_temperature_entity_ids,
     get_thermostat_entity_ids,
 )
-from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_CLOSE_COVER,
+    SERVICE_OPEN_COVER,
+    Platform,
+)
 from homeassistant.core import HomeAssistant
 
-from tests.common import MockConfigEntry, async_mock_service
+from tests.common import MockConfigEntry
 from tests.components.recorder.common import wait_recording_done
 
 
@@ -331,13 +337,7 @@ def test_determine_cover_service(
 #     }
 
 
-@pytest.fixture
-def calls(hass):
-    """Track calls to a mock service."""
-    return async_mock_service(hass, DOMAIN, "cover")
-
-
-def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant], calls) -> None:
+def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant]) -> None:
     """Test adjust covers."""
     thermostat_entity_id = "climate.living_room_thermostat"
     cover_entity_id = "cover.master_bedroom_vent"
@@ -345,7 +345,6 @@ def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant], calls) -> No
     actual_temperature_entity_id = "sensor.master_bedroom_temperature"
     config_entry = MockConfigEntry(
         domain=DOMAIN,
-        # unique_id="123456",
         data={
             "master_bedroom": {
                 "covers": [cover_entity_id],
@@ -378,10 +377,11 @@ def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant], calls) -> No
         new_state="70",
     )
     wait_recording_done(hass)
+    hass.services = MagicMock()
     adjust_covers(hass, config_entry)
-    # await hass.async_block_till_done()
-    # assert len(calls) == 1
-    # assert calls[0].data["some"] == "hvac_mode_changed"
-    # services_mock.call.assert_called_once_with(
-    #     "cover", "close", entity_id=cover_entity_id
-    # )
+
+    hass.services.call.assert_called_once_with(
+        Platform.COVER,
+        SERVICE_OPEN_COVER,
+        service_data={ATTR_ENTITY_ID: cover_entity_id},
+    )

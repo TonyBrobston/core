@@ -1,6 +1,6 @@
 """File for utilities."""
 from homeassistant.components.climate import HVACMode
-from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER
+from homeassistant.const import SERVICE_CLOSE_COVER, SERVICE_OPEN_COVER, Platform
 
 from .const import SUPPORTED_HVAC_MODES
 
@@ -73,37 +73,23 @@ def determine_cover_services(rooms, hvac_mode):
     ]
 
 
-# def adjust_covers(hass: HomeAssistant, config_entry: ConfigEntry):
-#     """Adjust covers."""
-#     # data = config_entry.as_dict()["data"]
-#     # print(f"reformatted data: {reformat_and_filter_to_valid_areas(data)}")
-#     state = hass.states.get("climate.living_room_thermostat")
-#     if state:
-#         return state.attributes.get("temperature")
 def adjust_covers(hass, config_entry):
     """Adjust covers based on thermostat and temperature sensors."""
     user_input = config_entry.as_dict()["data"]
-    # print(f"user_input: {user_input}")
     thermostat_entity_ids = get_thermostat_entity_ids(user_input)
-    # print(f"thermostat_entity_ids: {thermostat_entity_ids}")
     thermostat_entity_id = thermostat_entity_ids[0]
-    # print(f"thermostat_entity_id: {thermostat_entity_id}")
     areas = filter_to_valid_areas(user_input)
-    # print(f"areas: {areas}")
     hvac_mode = hass.states.get(thermostat_entity_id).attributes["hvac_mode"]
-    # print(f"hvac_mode: {hvac_mode}")
     for area, devices in areas.items():
-        # print(f"area: {area}")
-        # print(f"devices: {devices}")
         target_temperature = hass.states.get("climate." + area + "_thermostat").state
-        # print(f"target_temperature: {target_temperature}")
         actual_temperature = hass.states.get(devices["temperature"]).state
-        # print(f"actual_temperature: {actual_temperature}")
         service = determine_cover_service(
             target_temperature, actual_temperature, hvac_mode
         )
         for cover in devices["covers"]:
-            hass.services.call("cover", service, service_data={"entity_id": cover})
+            hass.services.call(
+                Platform.COVER, service, service_data={"entity_id": cover}
+            )
 
 
 def determine_thermostat_target_temperature(
