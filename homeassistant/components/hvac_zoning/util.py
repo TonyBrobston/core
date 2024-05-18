@@ -81,28 +81,6 @@ def determine_cover_service_to_call(
     )
 
 
-def adjust_covers(hass, config_entry):
-    """Adjust covers based on thermostat and temperature sensors."""
-    user_input = config_entry.as_dict()["data"]
-    central_thermostat_entity_id = get_central_thermostat_entity_ids(user_input)[0]
-    central_hvac_mode = hass.states.get(central_thermostat_entity_id).attributes[
-        "hvac_mode"
-    ]
-    areas = filter_to_valid_areas(user_input)
-    for area, devices in areas.items():
-        area_target_temperature = hass.states.get(
-            "climate." + area + "_thermostat"
-        ).state
-        area_actual_temperature = hass.states.get(devices["temperature"]).state
-        service_to_call = determine_cover_service_to_call(
-            area_target_temperature, area_actual_temperature, central_hvac_mode
-        )
-        for cover in devices["covers"]:
-            hass.services.call(
-                Platform.COVER, service_to_call, service_data={ATTR_ENTITY_ID: cover}
-            )
-
-
 def determine_change_in_temperature(target_temperature, hvac_mode, action):
     """Determine change in temperature."""
     if action == "active" and hvac_mode in SUPPORTED_HVAC_MODES:
@@ -112,39 +90,6 @@ def determine_change_in_temperature(target_temperature, hvac_mode, action):
             case HVACMode.COOL:
                 return target_temperature - 2
     return target_temperature
-
-
-def adjust_thermostat(hass, config_entry):
-    """Adjust thermostat."""
-    user_input = config_entry.as_dict()["data"]
-    central_thermostat_entity_id = get_central_thermostat_entity_ids(user_input)[0]
-    central_thermostat = hass.states.get(central_thermostat_entity_id)
-    central_thermostat_actual_temperature = central_thermostat.attributes["temperature"]
-    central_hvac_mode = central_thermostat.attributes["hvac_mode"]
-    areas = filter_to_valid_areas(user_input)
-    active = "active"
-    idle = "idle"
-    actions = [
-        determine_action(
-            hass.states.get("climate." + area + "_thermostat").state,
-            hass.states.get(devices["temperature"]).state,
-            central_hvac_mode,
-            active,
-            idle,
-        )
-        for area, devices in areas.items()
-    ]
-    action = "active" if all(action == "active" for action in actions) else "idle"
-    hass.services.call(
-        Platform.CLIMATE,
-        SERVICE_SET_TEMPERATURE,
-        service_data={
-            ATTR_ENTITY_ID: central_thermostat_entity_id,
-            ATTR_TEMPERATURE: determine_change_in_temperature(
-                central_thermostat_actual_temperature, central_hvac_mode, action
-            ),
-        },
-    )
 
 
 def adjust_house(hass, config_entry):

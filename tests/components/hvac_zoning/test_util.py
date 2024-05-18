@@ -7,9 +7,7 @@ import pytest
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
 from homeassistant.components.hvac_zoning.const import DOMAIN
 from homeassistant.components.hvac_zoning.util import (
-    adjust_covers,
     adjust_house,
-    adjust_thermostat,
     determine_change_in_temperature,
     determine_cover_service_to_call,
     filter_to_valid_areas,
@@ -244,56 +242,6 @@ def test_determine_cover_service(
 #     }
 
 
-def test_adjust_covers(hass_recorder: Callable[..., HomeAssistant]) -> None:
-    """Test adjust covers."""
-    thermostat_entity_id = "climate.living_room_thermostat"
-    cover_entity_id = "cover.master_bedroom_vent"
-    target_temperature_entity_id = "climate.master_bedroom_thermostat"
-    actual_temperature_entity_id = "sensor.master_bedroom_temperature"
-    config_entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={
-            "master_bedroom": {
-                "covers": [cover_entity_id],
-                "temperature": actual_temperature_entity_id,
-            },
-            "main_floor": {
-                "climate": thermostat_entity_id,
-            },
-        },
-    )
-    hass = hass_recorder()
-    hass.states.set(
-        entity_id=thermostat_entity_id,
-        new_state="unknown",
-        attributes={
-            "temperature": 68,
-            "hvac_mode": "heat",
-        },
-    )
-    hass.states.set(
-        entity_id=cover_entity_id,
-        new_state="open",
-    )
-    hass.states.set(
-        entity_id=target_temperature_entity_id,
-        new_state="71",
-    )
-    hass.states.set(
-        entity_id=actual_temperature_entity_id,
-        new_state="70",
-    )
-    wait_recording_done(hass)
-    hass.services = MagicMock()
-    adjust_covers(hass, config_entry)
-
-    hass.services.call.assert_called_once_with(
-        Platform.COVER,
-        SERVICE_OPEN_COVER,
-        service_data={ATTR_ENTITY_ID: cover_entity_id},
-    )
-
-
 @pytest.mark.parametrize(
     ("target_temperature", "hvac_mode", "action", "expected_change_in_temperature"),
     [
@@ -312,61 +260,6 @@ def test_determine_change_in_temperature(
         target_temperature, hvac_mode, action
     )
     assert change_in_temperature == expected_change_in_temperature
-
-
-def test_adjust_thermostat(hass_recorder: Callable[..., HomeAssistant]) -> None:
-    """Test adjust thermostat."""
-    central_thermostat_entity_id = "climate.living_room_thermostat"
-    cover_entity_id = "cover.master_bedroom_vent"
-    area_target_temperature_entity_id = "climate.master_bedroom_thermostat"
-    area_actual_temperature_entity_id = "sensor.master_bedroom_temperature"
-    config_entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={
-            "master_bedroom": {
-                "covers": [cover_entity_id],
-                "temperature": area_actual_temperature_entity_id,
-            },
-            "main_floor": {
-                "climate": central_thermostat_entity_id,
-            },
-        },
-    )
-    hass = hass_recorder()
-    hass.states.set(
-        entity_id=central_thermostat_entity_id,
-        new_state="unknown",
-        attributes={
-            "temperature": 68,
-            "hvac_mode": "heat",
-        },
-    )
-    hass.states.set(
-        entity_id=cover_entity_id,
-        new_state="open",
-    )
-    hass.states.set(
-        entity_id=area_target_temperature_entity_id,
-        new_state="71",
-    )
-    hass.states.set(
-        entity_id=area_actual_temperature_entity_id,
-        new_state="70",
-    )
-    wait_recording_done(hass)
-    hass.services = MagicMock()
-
-    adjust_thermostat(hass, config_entry)
-
-    expected_central_target_temperature = 70
-    hass.services.call.assert_called_once_with(
-        Platform.CLIMATE,
-        SERVICE_SET_TEMPERATURE,
-        service_data={
-            ATTR_ENTITY_ID: central_thermostat_entity_id,
-            ATTR_TEMPERATURE: expected_central_target_temperature,
-        },
-    )
 
 
 def test_adjust_house(hass_recorder: Callable[..., HomeAssistant]) -> None:
