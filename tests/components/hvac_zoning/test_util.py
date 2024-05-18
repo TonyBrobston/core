@@ -193,53 +193,6 @@ def test_determine_cover_service(
     assert service == expected_service
 
 
-# def test_determine_thermostat_target_temperature() -> None:
-#     """Test determine thermostat target temperature."""
-#     thermostat_target_temperature = 70
-#     thermostat_actual_temperature = 70
-#     hvac_mode = HVACMode.HEAT
-#     room_target_temperature = 71
-#     room_actuLt_temperature = 71
-#     rooms = [{}]
-
-#     new_thermostat_target_temperature = determine_thermostat_target_temperature()
-
-#     expected_thermostat_target_temperature = 72
-#     assert new_thermostat_target_temperature == expected_new_target_temperature
-
-
-# def test_build_room_temperature_dict(
-#     hass_recorder: Callable[..., HomeAssistant],
-# ) -> None:
-#     """Test build room temperature dict."""
-#     area = "master_bedroom"
-#     thermostat_entity_id = area + "thermostat"
-#     temperature_entity_id = "sensor." + area + "_temperature"
-#     formatted_user_input = {area: {"temperature": temperature_entity_id}}
-#     hass = hass_recorder()
-#     target_temperature = 69
-#     hass.states.set(
-#         entity_id=thermostat_entity_id,
-#         new_state="unknown",
-#         attributes={
-#             "temperature": target_temperature,
-#         },
-#     )
-#     actual_temperature = 70
-#     hass.states.set(
-#         entity_id=temperature_entity_id,
-#         new_state=actual_temperature,
-#     )
-#     wait_recording_done(hass)
-
-#     room_temperature_dict = build_room_temperature_dict(hass, formatted_user_input)
-
-#     assert room_temperature_dict == {
-#         "master_bedroom": {
-#             "target_temperature": target_temperature,
-#             "actual_temperature": actual_temperature,
-#         }
-#     }
 
 
 @pytest.mark.parametrize(

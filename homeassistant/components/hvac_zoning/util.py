@@ -9,7 +9,7 @@ from homeassistant.const import (
     Platform,
 )
 
-from .const import SUPPORTED_HVAC_MODES
+from .const import ACTIVE, IDLE, SUPPORTED_HVAC_MODES
 
 
 def filter_to_valid_areas(user_input):
@@ -49,7 +49,7 @@ def get_central_thermostat_entity_ids(user_input):
 
 
 def determine_action(
-    target_temperature: int, actual_temperature: int, hvac_mode: HVACMode, active, idle
+    target_temperature: int, actual_temperature: int, hvac_mode: HVACMode
 ):
     """Determine action."""
     if (
@@ -60,30 +60,30 @@ def determine_action(
         match hvac_mode:
             case HVACMode.HEAT:
                 if actual_temperature >= target_temperature:
-                    return idle
+                    return IDLE
             case HVACMode.COOL:
                 if actual_temperature <= target_temperature:
-                    return idle
+                    return IDLE
 
-    return active
+    return ACTIVE
 
 
 def determine_cover_service_to_call(
     target_temperature: int, actual_temperature: int, hvac_mode: HVACMode
 ) -> str:
     """Determine cover service."""
-    return determine_action(
-        target_temperature,
-        actual_temperature,
-        hvac_mode,
-        SERVICE_OPEN_COVER,
-        SERVICE_CLOSE_COVER,
-    )
+    action_to_cover_service = {
+        ACTIVE: SERVICE_OPEN_COVER,
+        IDLE: SERVICE_CLOSE_COVER,
+    }
+    action = determine_action(target_temperature, actual_temperature, hvac_mode)
+
+    return action_to_cover_service.get(action)
 
 
 def determine_change_in_temperature(target_temperature, hvac_mode, action):
     """Determine change in temperature."""
-    if action == "active" and hvac_mode in SUPPORTED_HVAC_MODES:
+    if action == ACTIVE and hvac_mode in SUPPORTED_HVAC_MODES:
         match hvac_mode:
             case HVACMode.HEAT:
                 return target_temperature + 2
@@ -112,19 +112,15 @@ def adjust_house(hass, config_entry):
             hass.services.call(
                 Platform.COVER, service_to_call, service_data={ATTR_ENTITY_ID: cover}
             )
-    active = "active"
-    idle = "idle"
     actions = [
         determine_action(
             hass.states.get("climate." + area + "_thermostat").state,
             hass.states.get(devices["temperature"]).state,
             central_hvac_mode,
-            active,
-            idle,
         )
         for area, devices in areas.items()
     ]
-    action = idle if all(action == idle for action in actions) else active
+    action = IDLE if all(action == IDLE for action in actions) else ACTIVE
     hass.services.call(
         Platform.CLIMATE,
         SERVICE_SET_TEMPERATURE,
@@ -135,32 +131,3 @@ def adjust_house(hass, config_entry):
             ),
         },
     )
-
-
-def determine_thermostat_target_temperature(
-    target_temperature: int,
-    actual_temperature: int,
-    hvac_mode: str,
-    cover_services: list[str],
-) -> int:
-    """Determine the new thermostat target temperature based on the current state."""
-    change_in_temperature = 2
-    match hvac_mode:
-        case HVACMode.HEAT:
-            if SERVICE_OPEN_COVER in cover_services:
-                if actual_temperature <= target_temperature:
-                    heat_heating = actual_temperature + change_in_temperature
-                    return heat_heating
-            else:
-                heat_idle = actual_temperature - change_in_temperature
-                return heat_idle
-        case HVACMode.COOL:
-            if SERVICE_OPEN_COVER in cover_services:
-                if actual_temperature >= target_temperature:
-                    cool_cooling = actual_temperature - change_in_temperature
-                    return cool_cooling
-            else:
-                cool_idle = actual_temperature + change_in_temperature
-                return cool_idle
-
-    return target_temperature
