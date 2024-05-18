@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+from homeassistant.components.hvac_zoning.util import (
+    adjust_house,
+    filter_to_valid_areas,
+    get_all_cover_entity_ids,
+    get_all_temperature_entity_ids,
+    get_all_thermostat_entity_ids,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -24,53 +31,27 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    # def handle_event(event):
-    #     event_dict = event.as_dict()
-    #     user_input = config_entry.as_dict()["data"]
-    #     event_type = event_dict["event_type"]
-    #     entity_id = event_dict["data"]["entity_id"]
-    #     virtual_thermostat_entity_ids = [
-    #         "climate." + zone_name + "_thermostat"
-    #         for zone_name in filter_to_valid_areas(user_input)
-    #     ]
-    #     valid_areas = filter_to_valid_areas(user_input)
-    #     cover_entity_ids = get_all_cover_entity_ids(
-    #         valid_areas
-    #     )
-    #     temperature_entity_ids = get_temperature_entity_ids(
-    #         valid_areas
-    #     )
-    #     thermostat_entity = get_thermostat_entities(user_input)
-    #     entity_ids = (
-    #         virtual_thermostat_entity_ids
-    #         + cover_entity_ids
-    #         + temperature_entity_ids
-    #         + thermostat_entity
-    #     )
-    #     # TO DO: Include main climate
-    #     if event_type == "state_changed" and entity_id in entity_ids:
-    #         print(f"event: {event_dict}")
-    #         entity_id = event_dict["data"]["entity_id"]
-    #         print(f"entity_id: {entity_id}")
-    #         print(f"hass.states: {hass.states}")
-    #         state = hass.states.get(entity_id)
-    #         print(f"hass.states.get: {state}")
-    #         target_temperature = state.attributes.get("temperature")
-    #         print(f"target_temperature: {target_temperature}")
+    def handle_event(event):
+        event_dict = event.as_dict()
+        event_type = event_dict["event_type"]
+        entity_id = event_dict["data"]["entity_id"]
+        user_input = config_entry.as_dict()["data"]
+        areas = filter_to_valid_areas(user_input)
+        cover_entity_ids = get_all_cover_entity_ids(areas)
+        temperature_entity_ids = get_all_temperature_entity_ids(areas)
+        thermostat_entity_ids = get_all_thermostat_entity_ids(user_input)
+        virtual_thermostat_entity_ids = [
+            "climate." + zone_name + "_thermostat"
+            for zone_name in filter_to_valid_areas(user_input)
+        ]
+        entity_ids = (
+            cover_entity_ids
+            + temperature_entity_ids
+            + thermostat_entity_ids
+            + virtual_thermostat_entity_ids
+        )
+        if event_type == "state_changed" and entity_id in entity_ids:
+            adjust_house(hass, config_entry)
 
-    #     # if (
-    #     #     event_dict["event_type"] == "call_service"
-    #     #     and event_dict["data"]["service_data"]["temperature"] == 71
-    #     # ):
-    #     #     hass.services.call(
-    #     #         "climate",
-    #     #         "set_temperature",
-    #     #         service_data={
-    #     #             "entity_id": "climate.basement_thermostat",
-    #     #             "temperature": 65,
-    #     #         },
-    #     #     )
-
-    # hass.bus.async_listen("state_changed", handle_event)
-    # hass.bus.async_listen("call_service", handle_event)
+    hass.bus.async_listen("state_changed", handle_event)
     return True

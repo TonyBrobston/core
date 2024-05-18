@@ -43,7 +43,7 @@ def get_all_temperature_entity_ids(areas):
     return [area["temperature"] for area in areas.values() if "temperature" in area]
 
 
-def get_central_thermostat_entity_ids(user_input):
+def get_all_thermostat_entity_ids(user_input):
     """Get thermostat enitty ids."""
     return [area["climate"] for area in user_input.values() if "climate" in area]
 
@@ -95,7 +95,7 @@ def determine_change_in_temperature(target_temperature, hvac_mode, action):
 def adjust_house(hass, config_entry):
     """Adjust house."""
     user_input = config_entry.as_dict()["data"]
-    central_thermostat_entity_id = get_central_thermostat_entity_ids(user_input)[0]
+    central_thermostat_entity_id = get_all_thermostat_entity_ids(user_input)[0]
     central_thermostat = hass.states.get(central_thermostat_entity_id)
     central_thermostat_actual_temperature = central_thermostat.attributes["temperature"]
     central_hvac_mode = central_thermostat.attributes["hvac_mode"]

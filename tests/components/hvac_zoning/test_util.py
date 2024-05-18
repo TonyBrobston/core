@@ -13,7 +13,7 @@ from homeassistant.components.hvac_zoning.util import (
     filter_to_valid_areas,
     get_all_cover_entity_ids,
     get_all_temperature_entity_ids,
-    get_central_thermostat_entity_ids,
+    get_all_thermostat_entity_ids,
 )
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -158,9 +158,9 @@ def test_get_all_temperature_entity_ids() -> None:
         ),
     ],
 )
-def test_get_thermostat_entity_ids(user_input, expected_thermostats) -> None:
+def test_get_all_thermostat_entity_ids(user_input, expected_thermostats) -> None:
     """Test get thermostat entity ids."""
-    thermostats = get_central_thermostat_entity_ids(user_input)
+    thermostats = get_all_thermostat_entity_ids(user_input)
 
     assert thermostats == expected_thermostats
 
@@ -191,8 +191,6 @@ def test_determine_cover_service(
     )
 
     assert service == expected_service
-
-
 
 
 @pytest.mark.parametrize(
