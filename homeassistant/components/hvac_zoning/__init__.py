@@ -119,9 +119,9 @@ def adjust_house(hass, config_entry):
     areas = filter_to_valid_areas(user_input)
     print(f"areas: {areas}")
     for area, devices in areas.items():
-        area_target_temperature = hass.states.get(
-            "climate." + area + "_thermostat"
-        ).state
+        area_thermostat = hass.states.get("climate." + area + "_thermostat")
+        print(f"area_thermostat: {area_thermostat}")
+        area_target_temperature = area_thermostat.state
         print(f"area_target_temperature: {area_target_temperature}")
         area_actual_temperature = hass.states.get(devices["temperature"]).state
         print(f"area_actual_temperature: {area_actual_temperature}")
@@ -169,33 +169,23 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     def handle_event(event):
         event_dict = event.as_dict()
-        print(f"event_dict: {event_dict}")
         event_type = event_dict["event_type"]
-        print(f"event_type: {event_type}")
         entity_id = event_dict["data"]["entity_id"]
-        print(f"entity_id: {entity_id}")
         user_input = config_entry.as_dict()["data"]
-        print(f"user_input: {user_input}")
         areas = filter_to_valid_areas(user_input)
-        print(f"areas: {areas}")
         cover_entity_ids = get_all_cover_entity_ids(areas)
-        print(f"cover_entity_ids: {cover_entity_ids}")
         temperature_entity_ids = get_all_temperature_entity_ids(areas)
-        print(f"temperature_entity_ids: {temperature_entity_ids}")
         thermostat_entity_ids = get_all_thermostat_entity_ids(user_input)
-        print(f"thermostat_entity_ids: {thermostat_entity_ids}")
         virtual_thermostat_entity_ids = [
             "climate." + zone_name + "_thermostat"
             for zone_name in filter_to_valid_areas(user_input)
         ]
-        print(f"virtual_thermostat_entity_ids: {virtual_thermostat_entity_ids}")
         entity_ids = (
             cover_entity_ids
             + temperature_entity_ids
             + thermostat_entity_ids
             + virtual_thermostat_entity_ids
         )
-        print(f"entity_ids: {entity_ids}")
         if event_type == "state_changed" and entity_id in entity_ids:
             print("Event type is 'state_changed' and entity ID is in entity IDs")
             adjust_house(hass, config_entry)
