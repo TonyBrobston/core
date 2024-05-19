@@ -85,17 +85,13 @@ def determine_cover_service_to_call(
     thermostat_action: str,
 ) -> str:
     """Determine cover service."""
-    action_to_cover_service = {
-        ACTIVE: SERVICE_OPEN_COVER,
-        IDLE: SERVICE_CLOSE_COVER,
-    }
     action = (
         ACTIVE
         if thermostat_action == IDLE
         else determine_action(target_temperature, actual_temperature, hvac_mode)
     )
 
-    return action_to_cover_service.get(action)
+    return SERVICE_CLOSE_COVER if action is not ACTIVE else SERVICE_OPEN_COVER
 
 
 def determine_change_in_temperature(target_temperature, hvac_mode, action):
