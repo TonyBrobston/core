@@ -89,7 +89,11 @@ def determine_cover_service_to_call(
         ACTIVE: SERVICE_OPEN_COVER,
         IDLE: SERVICE_CLOSE_COVER,
     }
-    action = ACTIVE if thermostat_action == IDLE else determine_action(target_temperature, actual_temperature, hvac_mode)
+    action = (
+        ACTIVE
+        if thermostat_action == IDLE
+        else determine_action(target_temperature, actual_temperature, hvac_mode)
+    )
 
     return action_to_cover_service.get(action)
 
@@ -123,6 +127,17 @@ def adjust_house(hass, config_entry):
     print(f"central_hvac_mode: {central_hvac_mode}")
     areas = filter_to_valid_areas(user_input)
     print(f"areas: {areas}")
+    actions = [
+        determine_action(
+            hass.states.get("climate." + area + "_thermostat").state,
+            hass.states.get(devices["temperature"]).state,
+            central_hvac_mode,
+        )
+        for area, devices in areas.items()
+    ]
+    print(f"actions: {actions}")
+    thermostat_action = ACTIVE if ACTIVE in actions else IDLE
+    print(f"thermostat_action: {thermostat_action}")
     for area, devices in areas.items():
         print(f"area: {area}")
         area_thermostat = hass.states.get("climate." + area + "_thermostat")
@@ -135,31 +150,25 @@ def adjust_house(hass, config_entry):
         print(f"area_actual_temperature: {area_actual_temperature}")
         print(f"area_actual_temperature type: {type(area_actual_temperature)}")
         service_to_call = determine_cover_service_to_call(
-            area_target_temperature, area_actual_temperature, central_hvac_mode, None
+            area_target_temperature,
+            area_actual_temperature,
+            central_hvac_mode,
+            thermostat_action,
         )
         print(f"service_to_call: {service_to_call}")
         for cover in devices["covers"]:
             hass.services.call(
                 Platform.COVER, service_to_call, service_data={ATTR_ENTITY_ID: cover}
             )
-    actions = [
-        determine_action(
-            hass.states.get("climate." + area + "_thermostat").state,
-            hass.states.get(devices["temperature"]).state,
-            central_hvac_mode,
-        )
-        for area, devices in areas.items()
-    ]
-    print(f"actions: {actions}")
-    action = ACTIVE if ACTIVE in actions else IDLE
-    print(f"action: {action}")
     hass.services.call(
         Platform.CLIMATE,
         SERVICE_SET_TEMPERATURE,
         service_data={
             ATTR_ENTITY_ID: central_thermostat_entity_id,
             ATTR_TEMPERATURE: determine_change_in_temperature(
-                central_thermostat_actual_temperature, central_hvac_mode, action
+                central_thermostat_actual_temperature,
+                central_hvac_mode,
+                thermostat_action,
             ),
         },
     )
