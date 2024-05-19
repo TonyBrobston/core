@@ -66,7 +66,9 @@ def determine_action(
         and actual_temperature is not None
     ):
         print(f"target_temperature: {target_temperature}")
+        print(f"target_temperature type: {type(target_temperature)}")
         print(f"actual_temperature: {actual_temperature}")
+        print(f"actual_temperature type: {type(actual_temperature)}")
         match hvac_mode:
             case HVACMode.HEAT:
                 if actual_temperature >= target_temperature:
