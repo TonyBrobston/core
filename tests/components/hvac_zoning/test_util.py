@@ -234,10 +234,9 @@ def test_adjust_house(hass_recorder: Callable[..., HomeAssistant]) -> None:
     hass = hass_recorder()
     hass.states.set(
         entity_id=central_thermostat_entity_id,
-        new_state="unknown",
+        new_state="heat",
         attributes={
-            "temperature": 68,
-            "hvac_mode": "heat",
+            "current_temperature": 68,
         },
     )
     hass.states.set(

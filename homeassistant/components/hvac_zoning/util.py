@@ -97,8 +97,11 @@ def adjust_house(hass, config_entry):
     user_input = config_entry.as_dict()["data"]
     central_thermostat_entity_id = get_all_thermostat_entity_ids(user_input)[0]
     central_thermostat = hass.states.get(central_thermostat_entity_id)
-    central_thermostat_actual_temperature = central_thermostat.attributes["temperature"]
-    central_hvac_mode = central_thermostat.attributes["hvac_mode"]
+    central_thermostat_actual_temperature = central_thermostat.attributes[
+        "current_temperature"
+    ]
+    central_hvac_mode = central_thermostat.state
+    print(f"central_hvac_mode: {central_hvac_mode}")
     areas = filter_to_valid_areas(user_input)
     for area, devices in areas.items():
         area_target_temperature = hass.states.get(
