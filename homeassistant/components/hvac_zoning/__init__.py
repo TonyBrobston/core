@@ -66,12 +66,13 @@ def determine_action(
         and actual_temperature is not None
     ):
         modified_actual_temperature = int(float(actual_temperature))
+        modified_target_temperature = int(float(target_temperature))
         match hvac_mode:
             case HVACMode.HEAT:
-                if modified_actual_temperature >= target_temperature:
+                if modified_actual_temperature >= modified_target_temperature:
                     return IDLE
             case HVACMode.COOL:
-                if modified_actual_temperature <= target_temperature:
+                if modified_actual_temperature <= modified_target_temperature:
                     return IDLE
 
     return ACTIVE

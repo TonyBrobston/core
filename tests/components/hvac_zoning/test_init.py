@@ -15,7 +15,7 @@ from homeassistant.components.hvac_zoning import (
     get_all_temperature_entity_ids,
     get_all_thermostat_entity_ids,
 )
-from homeassistant.components.hvac_zoning.const import ACTIVE, DOMAIN
+from homeassistant.components.hvac_zoning.const import ACTIVE, DOMAIN, IDLE
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
@@ -169,8 +169,18 @@ def test_get_all_thermostat_entity_ids(user_input, expected_thermostats) -> None
 @pytest.mark.parametrize(
     ("target_temperature", "actual_temperature", "hvac_mode", "expected_action"),
     [
+        (73, 71, HVACMode.HEAT, ACTIVE),
+        (70, 71, HVACMode.COOL, ACTIVE),
         (73, "71.52", HVACMode.HEAT, ACTIVE),
         (70, "71.52", HVACMode.COOL, ACTIVE),
+        ("73.1", 71, HVACMode.HEAT, ACTIVE),
+        ("70.1", 71, HVACMode.COOL, ACTIVE),
+        (71, 73, HVACMode.HEAT, IDLE),
+        (71, 70, HVACMode.COOL, IDLE),
+        ("71.52", 73, HVACMode.HEAT, IDLE),
+        ("71.52", 70, HVACMode.COOL, IDLE),
+        (71, "73.1", HVACMode.HEAT, IDLE),
+        (71, "70.1", HVACMode.COOL, IDLE),
     ],
 )
 def test_determine_action(
