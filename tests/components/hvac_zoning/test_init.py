@@ -181,6 +181,8 @@ def test_get_all_thermostat_entity_ids(user_input, expected_thermostats) -> None
         ("71.52", 70, HVACMode.COOL, IDLE),
         (71, "73.1", HVACMode.HEAT, IDLE),
         (71, "70.1", HVACMode.COOL, IDLE),
+        ("unknown", 71, HVACMode.COOL, ACTIVE),
+        (71, "unknown", HVACMode.COOL, ACTIVE),
     ],
 )
 def test_determine_action(

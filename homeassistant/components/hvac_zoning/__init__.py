@@ -62,8 +62,8 @@ def determine_action(
     """Determine action."""
     if (
         hvac_mode in SUPPORTED_HVAC_MODES
-        and target_temperature is not None
-        and actual_temperature is not None
+        and target_temperature not in [None, "unknown"]
+        and actual_temperature not in [None, "unknown"]
     ):
         modified_actual_temperature = int(float(actual_temperature))
         modified_target_temperature = int(float(target_temperature))
