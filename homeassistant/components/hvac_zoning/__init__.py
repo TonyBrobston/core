@@ -69,10 +69,10 @@ def determine_action(
         print(f"actual_temperature: {actual_temperature}")
         match hvac_mode:
             case HVACMode.HEAT:
-                if float(actual_temperature) >= float(target_temperature):
+                if actual_temperature >= target_temperature:
                     return IDLE
             case HVACMode.COOL:
-                if float(actual_temperature) <= float(target_temperature):
+                if actual_temperature <= target_temperature:
                     return IDLE
 
     return ACTIVE
