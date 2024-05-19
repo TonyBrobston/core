@@ -5,8 +5,7 @@ from unittest.mock import MagicMock, call
 import pytest
 
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
-from homeassistant.components.hvac_zoning.const import DOMAIN
-from homeassistant.components.hvac_zoning.util import (
+from homeassistant.components.hvac_zoning import (
     adjust_house,
     determine_change_in_temperature,
     determine_cover_service_to_call,
@@ -15,6 +14,7 @@ from homeassistant.components.hvac_zoning.util import (
     get_all_temperature_entity_ids,
     get_all_thermostat_entity_ids,
 )
+from homeassistant.components.hvac_zoning.const import DOMAIN
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
