@@ -128,7 +128,9 @@ def adjust_house(hass, config_entry):
         print(f"area_thermostat: {area_thermostat}")
         area_target_temperature = area_thermostat.attributes["temperature"]
         print(f"area_target_temperature: {area_target_temperature}")
-        area_actual_temperature = hass.states.get(devices["temperature"]).state
+        temperature_sensor = hass.states.get(devices["temperature"])
+        print(f"temperature_sensor: {temperature_sensor}")
+        area_actual_temperature = temperature_sensor.state
         print(f"area_actual_temperature: {area_actual_temperature}")
         service_to_call = determine_cover_service_to_call(
             area_target_temperature, area_actual_temperature, central_hvac_mode
