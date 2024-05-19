@@ -62,8 +62,8 @@ def determine_action(
     """Determine action."""
     if (
         hvac_mode in SUPPORTED_HVAC_MODES
-        and target_temperature not in [None, "unknown"]
-        and actual_temperature not in [None, "unknown"]
+        and target_temperature is not None
+        and actual_temperature is not None
     ):
         modified_actual_temperature = int(float(actual_temperature))
         modified_target_temperature = int(float(target_temperature))
@@ -109,7 +109,7 @@ def determine_change_in_temperature(target_temperature, hvac_mode, action):
     return target_temperature
 
 
-def adjust_house(hass, config_entry):
+def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
     """Adjust house."""
     user_input = config_entry.as_dict()["data"]
     central_thermostat_entity_id = get_all_thermostat_entity_ids(user_input)[0]
