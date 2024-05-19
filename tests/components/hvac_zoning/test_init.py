@@ -194,28 +194,39 @@ def test_determine_action(
 
 
 @pytest.mark.parametrize(
-    ("target_temperature", "actual_temperature", "hvac_mode", "expected_service"),
+    (
+        "target_temperature",
+        "actual_temperature",
+        "hvac_mode",
+        "thermostat_action",
+        "expected_service",
+    ),
     [
-        (71, 70, HVACMode.HEAT, SERVICE_OPEN_COVER),
-        (69, 70, HVACMode.HEAT, SERVICE_CLOSE_COVER),
-        (70, 70, HVACMode.HEAT, SERVICE_CLOSE_COVER),
-        (69, 70, HVACMode.COOL, SERVICE_OPEN_COVER),
-        (71, 70, HVACMode.COOL, SERVICE_CLOSE_COVER),
-        (70, 70, HVACMode.COOL, SERVICE_CLOSE_COVER),
-        (71, 70, None, SERVICE_OPEN_COVER),
-        (71, 70, HVACMode.HEAT_COOL, SERVICE_OPEN_COVER),
-        (None, 70, HVACMode.HEAT, SERVICE_OPEN_COVER),
-        (70, None, HVACMode.HEAT, SERVICE_OPEN_COVER),
-        (None, 70, HVACMode.COOL, SERVICE_OPEN_COVER),
-        (70, None, HVACMode.COOL, SERVICE_OPEN_COVER),
+        (71, 70, HVACMode.HEAT, None, SERVICE_OPEN_COVER),
+        (69, 70, HVACMode.HEAT, None, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.HEAT, None, SERVICE_CLOSE_COVER),
+        (69, 70, HVACMode.COOL, None, SERVICE_OPEN_COVER),
+        (71, 70, HVACMode.COOL, None, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.COOL, None, SERVICE_CLOSE_COVER),
+        (71, 70, None, None, SERVICE_OPEN_COVER),
+        (71, 70, HVACMode.HEAT_COOL, None, SERVICE_OPEN_COVER),
+        (None, 70, HVACMode.HEAT, None, SERVICE_OPEN_COVER),
+        (70, None, HVACMode.HEAT, None, SERVICE_OPEN_COVER),
+        (None, 70, HVACMode.COOL, None, SERVICE_OPEN_COVER),
+        (70, None, HVACMode.COOL, None, SERVICE_OPEN_COVER),
+        (70, 70, HVACMode.COOL, IDLE, SERVICE_OPEN_COVER),
     ],
 )
 def test_determine_cover_service(
-    target_temperature, actual_temperature, hvac_mode, expected_service
+    target_temperature,
+    actual_temperature,
+    hvac_mode,
+    thermostat_action,
+    expected_service,
 ) -> None:
     """Test determine cover service."""
     service = determine_cover_service_to_call(
-        target_temperature, actual_temperature, hvac_mode
+        target_temperature, actual_temperature, hvac_mode, thermostat_action
     )
 
     assert service == expected_service

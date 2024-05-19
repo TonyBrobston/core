@@ -79,14 +79,17 @@ def determine_action(
 
 
 def determine_cover_service_to_call(
-    target_temperature: int, actual_temperature: int, hvac_mode: HVACMode
+    target_temperature: int,
+    actual_temperature: int,
+    hvac_mode: HVACMode,
+    thermostat_action: str,
 ) -> str:
     """Determine cover service."""
     action_to_cover_service = {
         ACTIVE: SERVICE_OPEN_COVER,
         IDLE: SERVICE_CLOSE_COVER,
     }
-    action = determine_action(target_temperature, actual_temperature, hvac_mode)
+    action = ACTIVE if thermostat_action == IDLE else determine_action(target_temperature, actual_temperature, hvac_mode)
 
     return action_to_cover_service.get(action)
 
@@ -132,7 +135,7 @@ def adjust_house(hass, config_entry):
         print(f"area_actual_temperature: {area_actual_temperature}")
         print(f"area_actual_temperature type: {type(area_actual_temperature)}")
         service_to_call = determine_cover_service_to_call(
-            area_target_temperature, area_actual_temperature, central_hvac_mode
+            area_target_temperature, area_actual_temperature, central_hvac_mode, None
         )
         print(f"service_to_call: {service_to_call}")
         for cover in devices["covers"]:
