@@ -126,6 +126,20 @@ def adjust_house(hass, config_entry):
     central_hvac_mode = central_thermostat.state
     print(f"central_hvac_mode: {central_hvac_mode}")
     areas = filter_to_valid_areas(user_input)
+    print(
+        f"virtual thermostat state: {[
+            hass.states.get("climate." + area + "_thermostat").state
+        for area, devices in areas.items()
+    ]
+    }"
+    )
+    print(
+        f"room temperature state: {[
+            hass.states.get(devices["temperature"]).state
+        for area, devices in areas.items()
+    ]
+    }"
+    )
     print(f"areas: {areas}")
     actions = [
         determine_action(
