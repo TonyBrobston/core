@@ -284,7 +284,7 @@ def test_adjust_house(hass_recorder: Callable[..., HomeAssistant]) -> None:
     )
     hass.states.set(
         entity_id=area_target_temperature_entity_id,
-        new_state=71,
+        new_state=None,
         attributes={
             "temperature": 71,
         },
