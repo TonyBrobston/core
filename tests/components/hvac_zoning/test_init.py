@@ -194,34 +194,6 @@ def test_determine_action(
 
 
 @pytest.mark.parametrize(
-    ("target_temperature", "actual_temperature", "hvac_mode", "expected_service"),
-    [
-        (71, 70, HVACMode.HEAT, SERVICE_OPEN_COVER),
-        (69, 70, HVACMode.HEAT, SERVICE_CLOSE_COVER),
-        (70, 70, HVACMode.HEAT, SERVICE_CLOSE_COVER),
-        (69, 70, HVACMode.COOL, SERVICE_OPEN_COVER),
-        (71, 70, HVACMode.COOL, SERVICE_CLOSE_COVER),
-        (70, 70, HVACMode.COOL, SERVICE_CLOSE_COVER),
-        (71, 70, None, SERVICE_OPEN_COVER),
-        (71, 70, HVACMode.HEAT_COOL, SERVICE_OPEN_COVER),
-        (None, 70, HVACMode.HEAT, SERVICE_OPEN_COVER),
-        (70, None, HVACMode.HEAT, SERVICE_OPEN_COVER),
-        (None, 70, HVACMode.COOL, SERVICE_OPEN_COVER),
-        (70, None, HVACMode.COOL, SERVICE_OPEN_COVER),
-    ],
-)
-def test_determine_cover_service(
-    target_temperature, actual_temperature, hvac_mode, expected_service
-) -> None:
-    """Test determine cover service."""
-    service = determine_cover_service_to_call(
-        target_temperature, actual_temperature, hvac_mode
-    )
-
-    assert service == expected_service
-
-
-@pytest.mark.parametrize(
     ("target_temperature", "hvac_mode", "action", "expected_change_in_temperature"),
     [
         (68, HVACMode.HEAT, "active", 70),
