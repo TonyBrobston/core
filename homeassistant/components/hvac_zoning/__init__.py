@@ -119,6 +119,7 @@ def adjust_house(hass, config_entry):
     areas = filter_to_valid_areas(user_input)
     print(f"areas: {areas}")
     for area, devices in areas.items():
+        print(f"area: {area}")
         area_thermostat = hass.states.get("climate." + area + "_thermostat")
         print(f"area_thermostat: {area_thermostat}")
         area_target_temperature = area_thermostat.state
