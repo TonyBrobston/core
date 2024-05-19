@@ -135,7 +135,9 @@ def adjust_house(hass, config_entry):
             ACTIVE: SERVICE_OPEN_COVER,
             IDLE: SERVICE_CLOSE_COVER,
         }
-        action = determine_action(area_target_temperature, area_actual_temperature, central_hvac_mode)
+        action = determine_action(
+            area_target_temperature, area_actual_temperature, central_hvac_mode
+        )
         service_to_call = action_to_cover_service.get(action)
         print(f"service_to_call: {service_to_call}")
         for cover in devices["covers"]:
@@ -151,7 +153,7 @@ def adjust_house(hass, config_entry):
         for area, devices in areas.items()
     ]
     print(f"actions: {actions}")
-    action = IDLE if all(action == IDLE for action in actions) else ACTIVE
+    action = ACTIVE if ACTIVE in actions else IDLE
     print(f"action: {action}")
     hass.services.call(
         Platform.CLIMATE,
