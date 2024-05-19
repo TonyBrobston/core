@@ -131,14 +131,9 @@ def adjust_house(hass, config_entry):
         area_actual_temperature = temperature_sensor.state
         print(f"area_actual_temperature: {area_actual_temperature}")
         print(f"area_actual_temperature type: {type(area_actual_temperature)}")
-        action_to_cover_service = {
-            ACTIVE: SERVICE_OPEN_COVER,
-            IDLE: SERVICE_CLOSE_COVER,
-        }
-        action = determine_action(
+        service_to_call = determine_cover_service_to_call(
             area_target_temperature, area_actual_temperature, central_hvac_mode
         )
-        service_to_call = action_to_cover_service.get(action)
         print(f"service_to_call: {service_to_call}")
         for cover in devices["covers"]:
             hass.services.call(
