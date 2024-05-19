@@ -65,16 +65,13 @@ def determine_action(
         and target_temperature is not None
         and actual_temperature is not None
     ):
-        print(f"target_temperature: {target_temperature}")
-        print(f"target_temperature type: {type(target_temperature)}")
-        print(f"actual_temperature: {actual_temperature}")
-        print(f"actual_temperature type: {type(actual_temperature)}")
+        modified_actual_temperature = int(float(actual_temperature))
         match hvac_mode:
             case HVACMode.HEAT:
-                if float(actual_temperature) >= target_temperature:
+                if modified_actual_temperature >= target_temperature:
                     return IDLE
             case HVACMode.COOL:
-                if float(actual_temperature) <= target_temperature:
+                if modified_actual_temperature <= target_temperature:
                     return IDLE
 
     return ACTIVE
@@ -132,6 +129,7 @@ def adjust_house(hass, config_entry):
         print(f"temperature_sensor: {temperature_sensor}")
         area_actual_temperature = temperature_sensor.state
         print(f"area_actual_temperature: {area_actual_temperature}")
+        print(f"area_actual_temperature type: {type(area_actual_temperature)}")
         service_to_call = determine_cover_service_to_call(
             area_target_temperature, area_actual_temperature, central_hvac_mode
         )

@@ -7,6 +7,7 @@ import pytest
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
 from homeassistant.components.hvac_zoning import (
     adjust_house,
+    determine_action,
     determine_change_in_temperature,
     determine_cover_service_to_call,
     filter_to_valid_areas,
@@ -14,7 +15,7 @@ from homeassistant.components.hvac_zoning import (
     get_all_temperature_entity_ids,
     get_all_thermostat_entity_ids,
 )
-from homeassistant.components.hvac_zoning.const import DOMAIN
+from homeassistant.components.hvac_zoning.const import ACTIVE, DOMAIN
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
@@ -163,6 +164,21 @@ def test_get_all_thermostat_entity_ids(user_input, expected_thermostats) -> None
     thermostats = get_all_thermostat_entity_ids(user_input)
 
     assert thermostats == expected_thermostats
+
+
+@pytest.mark.parametrize(
+    ("target_temperature", "actual_temperature", "hvac_mode", "expected_action"),
+    [
+        (73, "71.52", HVACMode.HEAT, ACTIVE),
+        (70, "71.52", HVACMode.COOL, ACTIVE),
+    ],
+)
+def test_determine_action(
+    target_temperature, actual_temperature, hvac_mode, expected_action
+) -> None:
+    """Test determine action."""
+    action = determine_action(target_temperature, actual_temperature, hvac_mode)
+    assert action == expected_action
 
 
 @pytest.mark.parametrize(
