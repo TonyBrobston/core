@@ -112,29 +112,13 @@ def determine_change_in_temperature(target_temperature, hvac_mode, action):
 def adjust_house(hass, config_entry):
     """Adjust house."""
     user_input = config_entry.as_dict()["data"]
-    print(f"user_input: {user_input}")
     central_thermostat_entity_id = get_all_thermostat_entity_ids(user_input)[0]
-    print(f"central_thermostat_entity_id: {central_thermostat_entity_id}")
     central_thermostat = hass.states.get(central_thermostat_entity_id)
-    print(f"central_thermostat: {central_thermostat}")
     central_thermostat_actual_temperature = central_thermostat.attributes[
         "current_temperature"
     ]
-    print(
-        f"central_thermostat_actual_temperature: {central_thermostat_actual_temperature}"
-    )
     central_hvac_mode = central_thermostat.state
-    print(f"central_hvac_mode: {central_hvac_mode}")
     areas = filter_to_valid_areas(user_input)
-    print(
-        f"virtual thermostat state: {[
-            hass.states.get("climate." + area + "_thermostat").attributes["temperature"]
-
-        for area, devices in areas.items()
-    ]
-    }"
-    )
-    print(f"areas: {areas}")
     actions = [
         determine_action(
             hass.states.get("climate." + area + "_thermostat").attributes[
@@ -145,27 +129,18 @@ def adjust_house(hass, config_entry):
         )
         for area, devices in areas.items()
     ]
-    print(f"actions: {actions}")
     thermostat_action = ACTIVE if ACTIVE in actions else IDLE
-    print(f"thermostat_action: {thermostat_action}")
     for area, devices in areas.items():
-        print(f"area: {area}")
         area_thermostat = hass.states.get("climate." + area + "_thermostat")
-        print(f"area_thermostat: {area_thermostat}")
         area_target_temperature = area_thermostat.attributes["temperature"]
-        print(f"area_target_temperature: {area_target_temperature}")
         temperature_sensor = hass.states.get(devices["temperature"])
-        print(f"temperature_sensor: {temperature_sensor}")
         area_actual_temperature = temperature_sensor.state
-        print(f"area_actual_temperature: {area_actual_temperature}")
-        print(f"area_actual_temperature type: {type(area_actual_temperature)}")
         service_to_call = determine_cover_service_to_call(
             area_target_temperature,
             area_actual_temperature,
             central_hvac_mode,
             thermostat_action,
         )
-        print(f"service_to_call: {service_to_call}")
         for cover in devices["covers"]:
             hass.services.call(
                 Platform.COVER, service_to_call, service_data={ATTR_ENTITY_ID: cover}
@@ -215,7 +190,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             + virtual_thermostat_entity_ids
         )
         if event_type == "state_changed" and entity_id in entity_ids:
-            print("Event type is 'state_changed' and entity ID is in entity IDs")
             adjust_house(hass, config_entry)
 
     hass.bus.async_listen("state_changed", handle_event)
