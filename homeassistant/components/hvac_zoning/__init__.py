@@ -67,10 +67,10 @@ def determine_action(
     ):
         match hvac_mode:
             case HVACMode.HEAT:
-                if actual_temperature >= target_temperature:
+                if int(actual_temperature) >= int(target_temperature):
                     return IDLE
             case HVACMode.COOL:
-                if actual_temperature <= target_temperature:
+                if int(actual_temperature) <= int(target_temperature):
                     return IDLE
 
     return ACTIVE
@@ -122,7 +122,7 @@ def adjust_house(hass, config_entry):
         print(f"area: {area}")
         area_thermostat = hass.states.get("climate." + area + "_thermostat")
         print(f"area_thermostat: {area_thermostat}")
-        area_target_temperature = area_thermostat.state
+        area_target_temperature = area_thermostat.attributes["temperature"]
         print(f"area_target_temperature: {area_target_temperature}")
         area_actual_temperature = hass.states.get(devices["temperature"]).state
         print(f"area_actual_temperature: {area_actual_temperature}")

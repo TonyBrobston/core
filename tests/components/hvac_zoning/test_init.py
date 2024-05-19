@@ -245,11 +245,14 @@ def test_adjust_house(hass_recorder: Callable[..., HomeAssistant]) -> None:
     )
     hass.states.set(
         entity_id=area_target_temperature_entity_id,
-        new_state="71",
+        new_state=71,
+        attributes={
+            "temperature": 71,
+        },
     )
     hass.states.set(
         entity_id=area_actual_temperature_entity_id,
-        new_state="70",
+        new_state=70,
     )
     wait_recording_done(hass)
     hass.services = MagicMock()
