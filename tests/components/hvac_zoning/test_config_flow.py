@@ -401,8 +401,8 @@ def test_merge_user_input(config_entry, user_input, key, expected_output) -> Non
     assert merge_user_input(config_entry, user_input, key) == expected_output
 
 
-async def test_user_step_without_user_input(hass: HomeAssistant) -> None:
-    """Test user step without user input."""
+async def test_step_user_without_user_input(hass: HomeAssistant) -> None:
+    """Test step user without user input."""
     flow = config_flow.HVACZoningConfigFlow()
     flow.hass = hass
 
@@ -412,8 +412,8 @@ async def test_user_step_without_user_input(hass: HomeAssistant) -> None:
     assert result["data_schema"].schema == {}
 
 
-async def test_user_step_with_user_input(hass: HomeAssistant) -> None:
-    """Test user step with user input."""
+async def test_step_user_with_user_input(hass: HomeAssistant) -> None:
+    """Test step user with user input."""
     flow = config_flow.HVACZoningConfigFlow()
     flow.hass = hass
 
@@ -429,3 +429,14 @@ async def test_user_step_with_user_input(hass: HomeAssistant) -> None:
         "office": {"covers": ["cover.office_vent"]},
         "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
     }
+
+
+async def test_step_second_without_user_input(hass: HomeAssistant) -> None:
+    """Test step second without user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+
+    result = await flow.async_step_second()
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "second"
+    assert result["data_schema"].schema == {}
