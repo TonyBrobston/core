@@ -9,6 +9,7 @@ from homeassistant.components.hvac_zoning.config_flow import (
     get_all_rooms,
     merge_user_input,
 )
+from homeassistant.components.hvac_zoning.const import DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_registry import RegistryEntry
 
@@ -407,6 +408,7 @@ async def test_step_user_without_user_input(hass: HomeAssistant) -> None:
     flow.hass = hass
 
     result = await flow.async_step_user()
+
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "user"
     assert result["data_schema"].schema == {}
@@ -416,13 +418,13 @@ async def test_step_user_with_user_input(hass: HomeAssistant) -> None:
     """Test step user with user input."""
     flow = config_flow.HVACZoningConfigFlow()
     flow.hass = hass
-
     user_input = {
         "office": ["cover.office_vent"],
         "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
     }
 
     result = await flow.async_step_user(user_input)
+
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "second"
     assert flow.init_info == {
@@ -437,6 +439,60 @@ async def test_step_second_without_user_input(hass: HomeAssistant) -> None:
     flow.hass = hass
 
     result = await flow.async_step_second()
+
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "second"
     assert result["data_schema"].schema == {}
+
+
+async def test_step_second_with_user_input(hass: HomeAssistant) -> None:
+    """Test step second with user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+    user_input = {
+        "office": "sensor.office_temperature",
+        "upstairs_bathroom": "sensor.upstairs_bathroom_temperature",
+    }
+
+    result = await flow.async_step_second(user_input)
+
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "third"
+    assert flow.init_info == {
+        "office": {
+            "temperature": "sensor.office_temperature",
+        },
+        "upstairs_bathroom": {
+            "temperature": "sensor.upstairs_bathroom_temperature",
+        },
+    }
+
+
+async def test_step_third_without_user_input(hass: HomeAssistant) -> None:
+    """Test step third without user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+
+    result = await flow.async_step_third()
+
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "third"
+    assert result["data_schema"].schema == {}
+
+
+async def test_step_third_with_user_input(hass: HomeAssistant) -> None:
+    """Test step third with user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+    user_input = {
+        "main_floor": "climate.living_room_thermostat",
+    }
+
+    result = await flow.async_step_third(user_input)
+
+    assert result["title"] == DOMAIN
+    assert result["data"] == {
+        "main_floor": {
+            "climate": "climate.living_room_thermostat",
+        },
+    }
