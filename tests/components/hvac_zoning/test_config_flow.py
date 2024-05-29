@@ -1,12 +1,15 @@
 """Test the HVAC Zoning config flow."""
 import pytest
 
+from homeassistant import data_entry_flow
+from homeassistant.components.hvac_zoning import config_flow
 from homeassistant.components.hvac_zoning.config_flow import (
     filter_entities_to_device_class_and_map_to_entity_ids,
     filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict,
     get_all_rooms,
     merge_user_input,
 )
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_registry import RegistryEntry
 
 # async def test_form(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> None:
@@ -396,3 +399,33 @@ def test_get_all_rooms(user_input1, user_input2, expected_output) -> None:
 def test_merge_user_input(config_entry, user_input, key, expected_output) -> None:
     """Test merge user inputs."""
     assert merge_user_input(config_entry, user_input, key) == expected_output
+
+
+async def test_user_step_without_user_input(hass: HomeAssistant) -> None:
+    """Test user step without user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+
+    result = await flow.async_step_user()
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["data_schema"].schema == {}
+
+
+async def test_user_step_with_user_input(hass: HomeAssistant) -> None:
+    """Test user step with user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+
+    user_input = {
+        "office": ["cover.office_vent"],
+        "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
+    }
+
+    result = await flow.async_step_user(user_input)
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "second"
+    assert flow.init_info == {
+        "office": {"covers": ["cover.office_vent"]},
+        "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+    }
