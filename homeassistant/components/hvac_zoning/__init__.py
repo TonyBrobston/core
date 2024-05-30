@@ -137,10 +137,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     """Set up HVAC Zoning from a config entry."""
 
     hass.data.setdefault(DOMAIN, {})
-    # TO DO 1. Create API instance
-    # TO DO 2. Validate the API connection (and authentication)
-    # TO DO 3. Store an API object for your platforms to access
-    # hass.data[DOMAIN][entry.entry_id] = MyApi(...)
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
