@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
+from homeassistant.components.hvac_zoning import filter_to_valid_areas
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -39,8 +40,5 @@ async def async_setup_entry(
     """Async setup entry."""
 
     user_input = config_entry.as_dict()["data"]
-
-    [Thermostat(area_name + "_thermostat") for area_name in user_input]
-    async_add_entities(
-        [Thermostat(area_name + "_thermostat") for area_name in user_input]
-    )
+    areas = filter_to_valid_areas(user_input)
+    async_add_entities([Thermostat(key + "_thermostat") for key in areas])
