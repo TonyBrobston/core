@@ -150,8 +150,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         temperature_entity_ids = get_all_temperature_entity_ids(areas)
         thermostat_entity_ids = get_all_thermostat_entity_ids(user_input)
         virtual_thermostat_entity_ids = [
-            "climate." + zone_name + "_thermostat"
-            for zone_name in filter_to_valid_areas(user_input)
+            "climate." + area + "_thermostat" for area in areas
         ]
         entity_ids = (
             cover_entity_ids
