@@ -233,11 +233,11 @@ def test_determine_cover_service(
 @pytest.mark.parametrize(
     ("target_temperature", "hvac_mode", "action", "expected_change_in_temperature"),
     [
-        (68, HVACMode.HEAT, "active", 70),
-        (68, HVACMode.COOL, "active", 66),
-        (68, HVACMode.OFF, "active", 68),
-        (68, HVACMode.HEAT, "idle", 68),
-        (68, HVACMode.HEAT_COOL, "active", 68),
+        (68, HVACMode.HEAT, ACTIVE, 70),
+        (68, HVACMode.COOL, ACTIVE, 66),
+        (68, HVACMode.OFF, ACTIVE, 68),
+        (68, HVACMode.HEAT, IDLE, 68),
+        (68, HVACMode.HEAT_COOL, ACTIVE, 68),
     ],
 )
 def test_determine_change_in_temperature(

@@ -29,18 +29,6 @@ def filter_to_valid_areas(user_input):
     }
 
 
-def reformat_and_filter_to_valid_areas(user_input):
-    """Reformat and filter to valid areas."""
-    valid_areas = filter_to_valid_areas(user_input)
-    return {
-        area: {
-            "damper": user_input["damper"][area],
-            "temperature": user_input["temperature"][area],
-        }
-        for area in valid_areas
-    }
-
-
 def get_all_cover_entity_ids(areas):
     """Get all cover entity ids."""
     return [cover for area in areas.values() for cover in area.get("covers", [])]
