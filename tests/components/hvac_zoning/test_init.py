@@ -1,4 +1,4 @@
-"""Test util."""
+"""Test init."""
 from collections.abc import Callable
 from unittest.mock import MagicMock, call
 
