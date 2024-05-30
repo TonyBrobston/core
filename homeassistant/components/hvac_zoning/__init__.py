@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
+from homeassistant.components.hvac_zoning.utils import filter_to_valid_areas
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -18,15 +19,6 @@ from .const import ACTIVE, DOMAIN, IDLE, SUPPORTED_HVAC_MODES
 # TO DO List the platforms that you want to support.
 # For your initial PR, limit it to 1 platform.
 PLATFORMS: list[Platform] = [Platform.CLIMATE]
-
-
-def filter_to_valid_areas(user_input):
-    """Filter to valid areas."""
-    return {
-        area: devices
-        for area, devices in user_input.items()
-        if "temperature" in devices and "covers" in devices
-    }
 
 
 def get_all_cover_entity_ids(areas):

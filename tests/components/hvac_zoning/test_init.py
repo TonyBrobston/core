@@ -10,7 +10,6 @@ from homeassistant.components.hvac_zoning import (
     determine_action,
     determine_change_in_temperature,
     determine_cover_service_to_call,
-    filter_to_valid_areas,
     get_all_cover_entity_ids,
     get_all_temperature_entity_ids,
     get_all_thermostat_entity_ids,
@@ -27,68 +26,6 @@ from homeassistant.core import HomeAssistant
 
 from tests.common import MockConfigEntry
 from tests.components.recorder.common import wait_recording_done
-
-
-@pytest.mark.parametrize(
-    ("user_input", "expected_areas"),
-    [
-        (
-            {
-                "basement": {
-                    "covers": [
-                        "cover.basement_west_vent",
-                    ],
-                    "temperature": "sensor.basement_temperature",
-                },
-                "guest_bedroom": {
-                    "covers": ["cover.guest_bedroom_vent"],
-                    "temperature": "sensor.guest_bedroom_temperature",
-                },
-                "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
-            },
-            {
-                "basement": {
-                    "covers": [
-                        "cover.basement_west_vent",
-                    ],
-                    "temperature": "sensor.basement_temperature",
-                },
-                "guest_bedroom": {
-                    "covers": ["cover.guest_bedroom_vent"],
-                    "temperature": "sensor.guest_bedroom_temperature",
-                },
-            },
-        ),
-        (
-            {
-                "guest_bedroom": {
-                    "covers": ["cover.guest_bedroom_vent"],
-                    "temperature": "sensor.guest_bedroom_temperature",
-                },
-                "upstairs_bathroom": {
-                    "covers": ["cover.upstairs_bathroom_vent"],
-                    "temperature": "sensor.upstairs_bathroom_temperature",
-                },
-                "main_floor": {"temperature": "sensor.main_floor_temperature"},
-            },
-            {
-                "guest_bedroom": {
-                    "covers": ["cover.guest_bedroom_vent"],
-                    "temperature": "sensor.guest_bedroom_temperature",
-                },
-                "upstairs_bathroom": {
-                    "covers": ["cover.upstairs_bathroom_vent"],
-                    "temperature": "sensor.upstairs_bathroom_temperature",
-                },
-            },
-        ),
-    ],
-)
-def test_filter_to_valid_areas(user_input, expected_areas) -> None:
-    """Test filter to valid areas."""
-    areas = filter_to_valid_areas(user_input)
-
-    assert areas == expected_areas
 
 
 def test_get_all_cover_entity_ids() -> None:
