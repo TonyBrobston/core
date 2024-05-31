@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
+    EVENT_STATE_CHANGED,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     Platform,
@@ -119,6 +120,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             hass.services.call(
                 Platform.COVER, service_to_call, service_data={ATTR_ENTITY_ID: cover}
             )
+
     hass.services.call(
         Platform.CLIMATE,
         SERVICE_SET_TEMPERATURE,
@@ -158,8 +160,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             + thermostat_entity_ids
             + virtual_thermostat_entity_ids
         )
-        if event_type == "state_changed" and entity_id in entity_ids:
+        if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
             adjust_house(hass, config_entry)
 
-    hass.bus.async_listen("state_changed", handle_event)
+    hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
     return True
