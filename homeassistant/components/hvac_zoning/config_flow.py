@@ -69,10 +69,12 @@ def filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
 
 async def get_options(self, area, device_class):
     """Get options for form."""
-    return filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
-        await get_entities_for_area(self, area.id),
+    entities_for_area = await get_entities_for_area(self, area.id)
+    entity_ids = filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
+        entities_for_area,
         device_class,
     )
+    return entity_ids
 
 
 async def build_schema(self, device_class, multiple):
