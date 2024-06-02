@@ -38,15 +38,16 @@ def filter_entities_to_device_class_and_map_to_entity_ids(entities, device_class
 
 async def get_entities_for_area(self, area_id):
     """Get entities for area."""
-    entityRegistry = EntityRegistry(self.hass)
-    await entityRegistry.async_load()
-    return async_entries_for_area(entityRegistry, area_id)
+    entity_registry = EntityRegistry(self.hass)
+    await entity_registry.async_load()
+    return async_entries_for_area(entity_registry, area_id)
 
 
 async def get_defaults(self, area, device_class, multiple):
     """Get defaults for form."""
+    entities_for_area = await get_entities_for_area(self, area.id)
     entity_ids = filter_entities_to_device_class_and_map_to_entity_ids(
-        await get_entities_for_area(self, area.id),
+        entities_for_area,
         device_class,
     )
     if not multiple:

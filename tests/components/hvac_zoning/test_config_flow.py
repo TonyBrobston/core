@@ -1,4 +1,5 @@
 """Test the HVAC Zoning config flow."""
+from unittest.mock import MagicMock, patch
 import pytest
 
 from homeassistant import data_entry_flow
@@ -7,11 +8,19 @@ from homeassistant.components.hvac_zoning.config_flow import (
     filter_entities_to_device_class_and_map_to_entity_ids,
     filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict,
     get_all_rooms,
+    get_defaults,
+    get_entities_for_area,
     merge_user_input,
 )
 from homeassistant.components.hvac_zoning.const import DOMAIN
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_registry import RegistryEntry
+from homeassistant.helpers.area_registry import AreaEntry
+from homeassistant.helpers.entity_registry import (
+    EntityRegistry,
+    EntityRegistryItems,
+    RegistryEntry,
+)
 
 # async def test_form(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> None:
 #     """Test we get the form."""
@@ -148,6 +157,55 @@ from homeassistant.helpers.entity_registry import RegistryEntry
 #     assert len(mock_setup_entry.mock_calls) == 1
 
 
+# async def test_get_entities_for_area(hass: HomeAssistant) -> None:
+#     """Test get entities for area."""
+#     mock_self = MagicMock()
+#     mock_self.hass = hass
+#     entity_id = "hvac_zoning.foo_cover"
+#     registry_id = "47ad524676f7deec03f2ef84f18ed00"
+#     registry_entry = RegistryEntry(entity_id, "bar", Platform.COVER, id=registry_id)
+#     entity_registry_items = EntityRegistryItems()
+#     entity_registry_items.__setitem__(entity_id, registry_entry)
+#     entity_registry = EntityRegistry(hass)
+#     entity_registry.entities = entity_registry_items
+#     entity_registry.deleted_entities = {}
+#     area_id = "living_room"
+#     entity_registry.async_update_entity(entity_id, area_id=area_id)
+
+#     entities = await get_entities_for_area(mock_self, entity_registry, area_id)
+
+#     assert entities == [
+#         RegistryEntry(
+#             entity_id=entity_id,
+#             unique_id="bar",
+#             platform=Platform.COVER,
+#             previous_unique_id=None,
+#             aliases=set(),
+#             area_id=area_id,
+#             categories={},
+#             capabilities=None,
+#             config_entry_id=None,
+#             device_class=None,
+#             device_id=None,
+#             disabled_by=None,
+#             entity_category=None,
+#             hidden_by=None,
+#             icon=None,
+#             id=registry_id,
+#             has_entity_name=False,
+#             labels=set(),
+#             name=None,
+#             options={},
+#             original_device_class=None,
+#             original_icon=None,
+#             original_name=None,
+#             supported_features=0,
+#             translation_key=None,
+#             unit_of_measurement=None,
+#         )
+#     ]
+
+
 def test_filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict() -> (
     None
 ):
@@ -264,14 +322,6 @@ def test_filter_entities_to_device_class_and_map_to_entity_names() -> None:
             original_name="Basement Northeast Vent",
             original_device_class="damper",
         ),
-        RegistryEntry(
-            entity_id="cover.basement_southeast_vent",
-            unique_id="Basement Southeast Vent",
-            platform="hvac_stubs",
-            id="16d81f78e8b7917950f984277ba4feff",
-            original_name="Basement Southeast Vent",
-            original_device_class="damper",
-        ),
     ]
 
     entity_names = filter_entities_to_device_class_and_map_to_entity_ids(
@@ -281,8 +331,75 @@ def test_filter_entities_to_device_class_and_map_to_entity_names() -> None:
     assert entity_names == [
         "cover.basement_west_vent",
         "cover.basement_northeast_vent",
-        "cover.basement_southeast_vent",
     ]
+
+
+@pytest.mark.parametrize(
+    ("device_class", "area_name", "multiple", "expected_defaults"),
+    [
+        (
+            "damper",
+            "basement",
+            True,
+            ["cover.basement_west_vent", "cover.basement_northeast_vent"],
+        ),
+        (
+            "damper",
+            "basement",
+            False,
+            "cover.basement_west_vent",
+        ),
+    ],
+)
+async def test_get_defaults(
+    hass: HomeAssistant, device_class, area_name, multiple, expected_defaults
+) -> None:
+    """Test get defaults."""
+    mock_self = MagicMock()
+    mock_self.hass = hass
+    entities = [
+        RegistryEntry(
+            entity_id="sensor.basement_temperature",
+            unique_id="Basement Temperature",
+            platform="hvac_stubs",
+            id="fcdf8c625327e2bd610ac6b4335ca438",
+            original_name="Basement Temperature",
+            original_device_class="temperature",
+        ),
+        RegistryEntry(
+            entity_id="cover.basement_west_vent",
+            unique_id="Basement West Vent",
+            platform="hvac_stubs",
+            id="800d6dcc0aef4b6a42476de9ff1403ad",
+            original_name="Basement West Vent",
+            original_device_class="damper",
+        ),
+        RegistryEntry(
+            entity_id="cover.basement_northeast_vent",
+            unique_id="Basement Northeast Vent",
+            platform="hvac_stubs",
+            id="0ae78e2e8f74045281a8ed154cd2b06d",
+            original_name="Basement Northeast Vent",
+            original_device_class="damper",
+        ),
+    ]
+    area_entry = AreaEntry(
+        id=area_name,
+        name=area_name,
+        normalized_name=area_name,
+        aliases=[],
+        floor_id=1,
+        icon=None,
+        picture=None,
+    )
+
+    with patch(
+        "homeassistant.components.hvac_zoning.config_flow.get_entities_for_area",
+        return_value=entities,
+    ):
+        defaults = await get_defaults(mock_self, area_entry, device_class, multiple)
+
+        assert defaults == expected_defaults
 
 
 @pytest.mark.parametrize(
