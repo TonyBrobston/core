@@ -3,15 +3,15 @@
     "step": {
       "user": {
         "data": {},
-        "description": "Choose which Smart Vents you would like to use for these Areas."
+        "description": "Choose which **Smart Vents** you would like to use for these **Areas**.\n \n If you do **NOT** see your **Smart Vent** listed here, be sure the **Smart Vent *Entities* (rather than the *Device*) are explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
       },
       "second": {
         "data": {},
-        "description": "Choose which Temperature Sensors you would like to use for these Areas."
+        "description": "Choose which **Temperature Sensors** you would like to use for these **Areas**.\n \n If you do **NOT** see your Temperature Sensor listed here, be sure the **Temperature Sensor *Entities* (rather than the *Device*) are explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
       },
       "third": {
         "data": {},
-        "description": "Choose your Thermostat."
+        "description": "Choose your **Thermostat**.\n \n If you do **NOT** see your Thermostat listed here, be sure the **Thermostat *Entity* (rather than the *Device*) is explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
       }
     },
     "abort": {
