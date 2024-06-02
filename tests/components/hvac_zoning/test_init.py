@@ -1,6 +1,4 @@
 """Test init."""
-import asyncio
-from collections.abc import Callable
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -28,9 +26,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 
 from tests.common import MockConfigEntry
-from tests.components.recorder.common import (
-    wait_recording_done,
-)
 
 
 def test_get_all_cover_entity_ids() -> None:
