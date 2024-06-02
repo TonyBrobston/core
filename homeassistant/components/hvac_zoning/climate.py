@@ -29,9 +29,7 @@ class Thermostat(ClimateEntity):
 
     def set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
-        print(f"kwargs: {kwargs}")
         temperature = kwargs.get(ATTR_TEMPERATURE)
-        print(f"temperature: {temperature}")
         self._attr_target_temperature = temperature
 
 
