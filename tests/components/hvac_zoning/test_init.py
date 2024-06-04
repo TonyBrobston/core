@@ -12,7 +12,6 @@ from homeassistant.components.hvac_zoning import (
     determine_cover_service_to_call,
     get_all_cover_entity_ids,
     get_all_temperature_entity_ids,
-    get_all_thermostat_entity_ids,
 )
 from homeassistant.components.hvac_zoning.const import ACTIVE, DOMAIN, IDLE
 from homeassistant.const import (
@@ -74,33 +73,6 @@ def test_get_all_temperature_entity_ids() -> None:
         "sensor.office_temperature",
         "sensor.upstairs_bathroom_temperature",
     ]
-
-
-@pytest.mark.parametrize(
-    ("user_input", "expected_thermostats"),
-    [
-        (
-            {"main_floor": {"climate": "climate.living_room_thermostat"}},
-            ["climate.living_room_thermostat"],
-        ),
-        (
-            {
-                "main_floor": {
-                    "climate": "climate.living_room_thermostat",
-                },
-                "garage": {
-                    "climate": "climate.garage_thermostat",
-                },
-            },
-            ["climate.living_room_thermostat", "climate.garage_thermostat"],
-        ),
-    ],
-)
-def test_get_all_thermostat_entity_ids(user_input, expected_thermostats) -> None:
-    """Test get thermostat entity ids."""
-    thermostats = get_all_thermostat_entity_ids(user_input)
-
-    assert thermostats == expected_thermostats
 
 
 @pytest.mark.parametrize(

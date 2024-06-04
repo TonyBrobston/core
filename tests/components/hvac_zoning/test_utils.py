@@ -1,7 +1,10 @@
 """Test utils."""
 import pytest
 
-from homeassistant.components.hvac_zoning.utils import filter_to_valid_areas
+from homeassistant.components.hvac_zoning.utils import (
+    filter_to_valid_areas,
+    get_all_thermostat_entity_ids,
+)
 
 
 @pytest.mark.parametrize(
@@ -64,3 +67,30 @@ def test_filter_to_valid_areas(user_input, expected_areas) -> None:
     areas = filter_to_valid_areas(user_input)
 
     assert areas == expected_areas
+
+
+@pytest.mark.parametrize(
+    ("user_input", "expected_thermostats"),
+    [
+        (
+            {"main_floor": {"climate": "climate.living_room_thermostat"}},
+            ["climate.living_room_thermostat"],
+        ),
+        (
+            {
+                "main_floor": {
+                    "climate": "climate.living_room_thermostat",
+                },
+                "garage": {
+                    "climate": "climate.garage_thermostat",
+                },
+            },
+            ["climate.living_room_thermostat", "climate.garage_thermostat"],
+        ),
+    ],
+)
+def test_get_all_thermostat_entity_ids(user_input, expected_thermostats) -> None:
+    """Test get thermostat entity ids."""
+    thermostats = get_all_thermostat_entity_ids(user_input)
+
+    assert thermostats == expected_thermostats

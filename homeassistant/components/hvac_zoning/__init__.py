@@ -15,7 +15,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 
 from .const import ACTIVE, DOMAIN, IDLE, SUPPORTED_HVAC_MODES
-from .utils import filter_to_valid_areas
+from .utils import filter_to_valid_areas, get_all_thermostat_entity_ids
 
 PLATFORMS: list[Platform] = [Platform.CLIMATE]
 
@@ -28,11 +28,6 @@ def get_all_cover_entity_ids(areas):
 def get_all_temperature_entity_ids(areas):
     """Get all temperature entity ids."""
     return [area["temperature"] for area in areas.values() if "temperature" in area]
-
-
-def get_all_thermostat_entity_ids(user_input):
-    """Get thermostat enitty ids."""
-    return [area["climate"] for area in user_input.values() if "climate" in area]
 
 
 def determine_action(
