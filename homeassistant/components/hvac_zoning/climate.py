@@ -23,7 +23,11 @@ class Thermostat(ClimateEntity):
     _attr_hvac_modes = SUPPORTED_HVAC_MODES
 
     def __init__(
-        self, hass, name, temperature_sensor_entity_id, thermostat_entity_id
+        self,
+        hass: HomeAssistant,
+        name,
+        temperature_sensor_entity_id,
+        thermostat_entity_id,
     ) -> None:
         """Thermostat init."""
         self._attr_unique_id = name
@@ -32,12 +36,13 @@ class Thermostat(ClimateEntity):
 
         def handle_event(event):
             event_dict = event.as_dict()
-            entity_id = event_dict["data"]["entity_id"]
+            data = event_dict["data"]
+            entity_id = data["entity_id"]
             if entity_id == temperature_sensor_entity_id:
-                current_temperature = float(event_dict["data"]["new_state"].state)
+                current_temperature = float(data["new_state"].state)
                 self._attr_current_temperature = current_temperature
             if entity_id == thermostat_entity_id:
-                hvac_mode = event_dict["data"]["new_state"].state
+                hvac_mode = data["new_state"].state
                 self._attr_hvac_mode = hvac_mode
 
         hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
