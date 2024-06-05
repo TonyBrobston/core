@@ -1,7 +1,6 @@
 """The HVAC Zoning integration."""
 
 from __future__ import annotations
-import pprint
 
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
 from homeassistant.config_entries import ConfigEntry
@@ -158,7 +157,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             + virtual_thermostat_entity_ids
         )
         if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
-            pprint.pprint(data)
+            print(
+                f"entity_id: {data["entity_id"]}\nold_state: {data["old_state"]}\nnew_state: {data["new_state"]}"
+            )
             adjust_house(hass, config_entry)
 
     hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
