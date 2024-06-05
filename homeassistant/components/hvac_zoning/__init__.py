@@ -157,9 +157,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             + virtual_thermostat_entity_ids
         )
         if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
-            print(
-                f"entity_id: {data["entity_id"]}\nold_state: {data["old_state"]}\nnewstate: {event["new_state"]}"
-            )
+            print(data)
             adjust_house(hass, config_entry)
 
     hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
