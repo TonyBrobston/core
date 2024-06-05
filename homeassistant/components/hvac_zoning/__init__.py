@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pprint
-
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -158,7 +156,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             + virtual_thermostat_entity_ids
         )
         if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
-            pprint.pprint(event)
+            print(event)
             adjust_house(hass, config_entry)
 
     hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
