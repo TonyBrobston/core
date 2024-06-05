@@ -158,7 +158,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         )
         if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
             print(
-                f"entity_id: {data["entity_id"]}\nold_state: {data["old_state"]}\nnew_state: {data["new_state"]}\n------------\n"
+                f"entity_id: {data["entity_id"]}\nold_state: {data["old_state"]}\nnew_state: {data["new_state"]}\n------------"
             )
             adjust_house(hass, config_entry)
 
