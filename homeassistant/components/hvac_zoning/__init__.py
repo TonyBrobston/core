@@ -140,7 +140,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     def handle_event(event):
         event_dict = event.as_dict()
         event_type = event_dict["event_type"]
-        entity_id = event_dict["data"]["entity_id"]
+        data = event_dict["data"]
+        entity_id = data["entity_id"]
         user_input = config_entry.as_dict()["data"]
         areas = filter_to_valid_areas(user_input)
         cover_entity_ids = get_all_cover_entity_ids(areas)
@@ -157,7 +158,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         )
         if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
             print(
-                f"entity_id: {event.entity_id}\nold_state: {event.old_state}\nnewstate: {event.new_state}"
+                f"entity_id: {data["entity_id"]}\nold_state: {data["old_state"]}\nnewstate: {event["new_state"]}"
             )
             adjust_house(hass, config_entry)
 
