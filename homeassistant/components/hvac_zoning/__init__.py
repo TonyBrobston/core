@@ -14,7 +14,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 
-from .const import ACTIVE, DOMAIN, IDLE, SUPPORTED_HVAC_MODES
+from .const import ACTIVE, DOMAIN, IDLE, LOGGER, SUPPORTED_HVAC_MODES
 from .utils import filter_to_valid_areas, get_all_thermostat_entity_ids
 
 PLATFORMS: list[Platform] = [Platform.CLIMATE]
@@ -157,10 +157,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             + virtual_thermostat_entity_ids
         )
         if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
-            print(
-                f"entity_id: {data["entity_id"]}\nold_state: {data["old_state"]}\nnew_state: {data["new_state"]}\n"
-            )
             adjust_house(hass, config_entry)
+            LOGGER.info(
+                f"entity_id: {data['entity_id']}"
+                + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
+                + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
+            )
 
     hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
     return True
