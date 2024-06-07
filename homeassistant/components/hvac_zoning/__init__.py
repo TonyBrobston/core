@@ -159,9 +159,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
             adjust_house(hass, config_entry)
             LOGGER.info(
-                f"entity_id: {data['entity_id']}"
+                f"\nentity_id: {data['entity_id']}"
                 + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
                 + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
+                + "\n--------------------------------------------------------"
             )
 
     hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
