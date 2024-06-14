@@ -36,14 +36,8 @@
       },
       "fourth": {
         "data": {
-          "basement": "Basement",
           "bedrooms": "Bedrooms",
           "bed_time": "Bed Time",
-          "guest_bedroom": "Guest Bedroom",
-          "main_floor": "Main Floor",
-          "master_bedroom": "Master Bedroom",
-          "office": "Office",
-          "upstairs_bathroom": "Upstairs Bathroom",
           "wake_time": "Wake Time"
         },
         "description": "Choose which rooms are **Bedrooms** and set what time to start and stop **Night Time Mode**.\n \n  The goal of this feature is to decrease vent noise while sleeping and to only climate control the **Bedrooms.** At night only **Bedroom** vents will remain open while all other room's vents will remain closed. In addition, the **Thermostat** will change from active to idle (and vice-versa) to meet the **Bedroom's** target temperature. If you do not select any **Bedrooms**, regular vent operation will occur all day and night."
