@@ -650,8 +650,11 @@ async def test_step_fourth_with_user_input(hass: HomeAssistant) -> None:
     """Test step fourth with user input."""
     flow = config_flow.HVACZoningConfigFlow()
     flow.hass = hass
-    user_input = user_input = {"bedrooms": ["master_bedroom"]}
-
+    user_input = user_input = {
+        "bed_time": "21:00:00",
+        "wake_time": "05:00:00",
+        "bedrooms": ["master_bedroom"],
+    }
     result = await flow.async_step_fourth(user_input)
 
     assert result["title"] == DOMAIN
@@ -659,6 +662,8 @@ async def test_step_fourth_with_user_input(hass: HomeAssistant) -> None:
         "areas": {
             "master_bedroom": {
                 "bedroom": True,
-            },
-        }
+            }
+        },
+        "bed_time": "21:00:00",
+        "wake_time": "05:00:00",
     }

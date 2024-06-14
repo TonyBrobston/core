@@ -16,6 +16,7 @@ from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
+    TimeSelector,
 )
 
 from .const import DOMAIN
@@ -74,13 +75,10 @@ def filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
 async def get_options(self, area, device_class):
     """Get options for form."""
     entities_for_area = await get_entities_for_area(self, area.id)
-    entity_ids = (
-        filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
-            entities_for_area,
-            device_class,
-        )
+    return filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
+        entities_for_area,
+        device_class,
     )
-    return entity_ids
 
 
 async def build_schema_for_device_class(self, device_class, multiple):
@@ -114,7 +112,9 @@ async def build_schema_for_areas(self):
                     multiple=True,
                     mode=SelectSelectorMode.LIST,
                 )
-            )
+            ),
+            vol.Optional("bed_time", default="21:00:00"): TimeSelector(),
+            vol.Optional("wake_time", default="05:00:00"): TimeSelector(),
         }
         if areas
         else {},
@@ -209,8 +209,17 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle selecting the thermostat."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            bedrooms = convert_bedroom_input_to_config_entry(self.init_info, user_input)
-            self.init_info = merge_user_input(self.init_info, bedrooms, "bedroom")
+            bedrooms_config_entry = convert_bedroom_input_to_config_entry(
+                self.init_info, user_input
+            )
+            config_entry = merge_user_input(
+                self.init_info, bedrooms_config_entry, "bedroom"
+            )
+            self.init_info = {
+                **config_entry,
+                "bed_time": user_input["bed_time"],
+                "wake_time": user_input["wake_time"],
+            }
             return self.async_create_entry(
                 title=DOMAIN,
                 data=self.init_info,
