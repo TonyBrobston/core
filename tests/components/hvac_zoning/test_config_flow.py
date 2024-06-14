@@ -1,4 +1,5 @@
 """Test the HVAC Zoning config flow."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -6,6 +7,7 @@ import pytest
 from homeassistant import data_entry_flow
 from homeassistant.components.hvac_zoning import config_flow
 from homeassistant.components.hvac_zoning.config_flow import (
+    convert_bedroom_input_to_config_entry,
     filter_entities_to_device_class_and_map_to_entity_ids,
     filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict,
     get_all_rooms,
@@ -436,11 +438,67 @@ def test_get_all_rooms(user_input1, user_input2, expected_output) -> None:
                 },
             },
         ),
+        (
+            {
+                "main_floor": {
+                    "covers": [
+                        "cover.living_room_northeast_vent",
+                    ],
+                    "temperature": "sensor.main_floor_temperature",
+                },
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                },
+            },
+            {
+                "main_floor": True,
+                "upstairs_bathroom": False,
+            },
+            "bedroom",
+            {
+                "main_floor": {
+                    "bedroom": True,
+                    "covers": [
+                        "cover.living_room_northeast_vent",
+                    ],
+                    "temperature": "sensor.main_floor_temperature",
+                },
+                "upstairs_bathroom": {
+                    "bedroom": False,
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                },
+            },
+        ),
     ],
 )
 def test_merge_user_input(config_entry, user_input, key, expected_output) -> None:
     """Test merge user inputs."""
     assert merge_user_input(config_entry, user_input, key) == expected_output
+
+
+def test_convert_bedroom_input_to_config_entry() -> None:
+    """Test convert array to config entry."""
+    config_entry = {
+        "main_floor": {
+            "covers": [
+                "cover.living_room_northeast_vent",
+            ],
+            "temperature": "sensor.main_floor_temperature",
+        },
+        "upstairs_bathroom": {
+            "covers": ["cover.upstairs_bathroom_vent"],
+            "temperature": "sensor.upstairs_bathroom_temperature",
+        },
+    }
+    user_input = {"bedrooms": ["master_bedroom"]}
+
+    assert convert_bedroom_input_to_config_entry(config_entry, user_input) == {
+        "main_floor": False,
+        "master_bedroom": True,
+        "upstairs_bathroom": False,
+    }
 
 
 async def test_step_user_without_user_input(hass: HomeAssistant) -> None:
@@ -531,9 +589,39 @@ async def test_step_third_with_user_input(hass: HomeAssistant) -> None:
 
     result = await flow.async_step_third(user_input)
 
-    assert result["title"] == DOMAIN
-    assert result["data"] == {
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "fourth"
+    assert flow.init_info == {
         "main_floor": {
             "climate": "climate.living_room_thermostat",
+        },
+    }
+
+
+async def test_step_fourth_without_user_input(hass: HomeAssistant) -> None:
+    """Test step fourth without user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+
+    result = await flow.async_step_fourth()
+
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "fourth"
+    print(f"foo: {result['data_schema'].schema}")
+    assert result["data_schema"].schema == {}
+
+
+async def test_step_fourth_with_user_input(hass: HomeAssistant) -> None:
+    """Test step fourth with user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+    user_input = user_input = {"bedrooms": ["master_bedroom"]}
+
+    result = await flow.async_step_fourth(user_input)
+
+    assert result["title"] == DOMAIN
+    assert result["data"] == {
+        "master_bedroom": {
+            "bedroom": True,
         },
     }

@@ -2,16 +2,49 @@
   "config": {
     "step": {
       "user": {
-        "data": {},
+        "data": {
+          "basement": "Basement",
+          "guest_bedroom": "Guest Bedroom",
+          "main_floor": "Main Floor",
+          "master_bedroom": "Master Bedroom",
+          "office": "Office",
+          "upstairs_bathroom": "Upstairs Bathroom"
+        },
         "description": "Choose which **Smart Vents** you would like to use for these **Areas**.\n \n If you do **NOT** see your **Smart Vent** listed here, be sure the **Smart Vent *Entities* (rather than the *Device*) are explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
       },
       "second": {
-        "data": {},
+        "data": {
+          "basement": "Basement",
+          "guest_bedroom": "Guest Bedroom",
+          "main_floor": "Main Floor",
+          "master_bedroom": "Master Bedroom",
+          "office": "Office",
+          "upstairs_bathroom": "Upstairs Bathroom"
+        },
         "description": "Choose which **Temperature Sensors** you would like to use for these **Areas**.\n \n If you do **NOT** see your Temperature Sensor listed here, be sure the **Temperature Sensor *Entities* (rather than the *Device*) are explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
       },
       "third": {
-        "data": {},
+        "data": {
+          "basement": "Basement",
+          "guest_bedroom": "Guest Bedroom",
+          "main_floor": "Main Floor",
+          "master_bedroom": "Master Bedroom",
+          "office": "Office",
+          "upstairs_bathroom": "Upstairs Bathroom"
+        },
         "description": "Choose your **Thermostat**.\n \n If you do **NOT** see your Thermostat listed here, be sure the **Thermostat *Entity* (rather than the *Device*) is explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
+      },
+      "fourth": {
+        "data": {
+          "basement": "Basement",
+          "bedrooms": "Bedrooms",
+          "guest_bedroom": "Guest Bedroom",
+          "main_floor": "Main Floor",
+          "master_bedroom": "Master Bedroom",
+          "office": "Office",
+          "upstairs_bathroom": "Upstairs Bathroom"
+        },
+        "description": "Choose which rooms are **Bedrooms**.\n \n At night only **Bedroom** vents will remain open while all other room's vents will remain closed. In addition, the **Thermostat** will change from active to idle (and vice-versa) to meet the **Bedroom's** target temperature. If you do not select any **Bedrooms**, regular vent operation will occur all day and night. The goal of this feature is to decrease vent noise while sleeping and to only climate control the **Bedrooms.**"
       }
     },
     "abort": {

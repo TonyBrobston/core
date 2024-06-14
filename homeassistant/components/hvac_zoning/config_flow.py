@@ -12,7 +12,11 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.helpers.area_registry import AreaRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry, async_entries_for_area
-from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .const import DOMAIN
 
@@ -70,15 +74,17 @@ def filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
 async def get_options(self, area, device_class):
     """Get options for form."""
     entities_for_area = await get_entities_for_area(self, area.id)
-    entity_ids = filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
-        entities_for_area,
-        device_class,
+    entity_ids = (
+        filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict(
+            entities_for_area,
+            device_class,
+        )
     )
     return entity_ids
 
 
-async def build_schema(self, device_class, multiple):
-    """Build schema."""
+async def build_schema_for_device_class(self, device_class, multiple):
+    """Build schema for device class."""
     areas = await get_areas(self)
     return vol.Schema(
         {
@@ -97,6 +103,24 @@ async def build_schema(self, device_class, multiple):
     )
 
 
+async def build_schema_for_areas(self):
+    """Build schema for areas."""
+    areas = await get_areas(self)
+    return vol.Schema(
+        {
+            vol.Optional("bedrooms"): SelectSelector(
+                SelectSelectorConfig(
+                    options=[{"value": area.id, "label": area.name} for area in areas],
+                    multiple=True,
+                    mode=SelectSelectorMode.LIST,
+                )
+            )
+        }
+        if areas
+        else {},
+    )
+
+
 def get_all_rooms(user_input1, user_input2):
     """Get all rooms."""
     return sorted(set(user_input1.keys()).union(user_input2.keys()))
@@ -108,10 +132,18 @@ def merge_user_input(config_entry, user_input, key):
     return {
         room: {
             **config_entry.get(room, {}),
-            **({key: user_input.get(room)} if user_input.get(room) else {}),
+            **({key: user_input.get(room)} if room in user_input else {}),
         }
         for room in rooms
     }
+
+
+def convert_bedroom_input_to_config_entry(config_entry, user_input):
+    """Convert bedroom input to config entry."""
+    bedrooms = user_input.get("bedrooms", [])
+    bedroom_config_entry = {bedroom: True for bedroom in bedrooms}
+    rooms = get_all_rooms(config_entry, bedroom_config_entry)
+    return {room: room in bedrooms for room in rooms}
 
 
 class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -131,7 +163,9 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=await build_schema(self, CoverDeviceClass.DAMPER, True),
+            data_schema=await build_schema_for_device_class(
+                self, CoverDeviceClass.DAMPER, True
+            ),
             errors=errors,
         )
 
@@ -146,7 +180,9 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="second",
-            data_schema=await build_schema(self, SensorDeviceClass.TEMPERATURE, False),
+            data_schema=await build_schema_for_device_class(
+                self, SensorDeviceClass.TEMPERATURE, False
+            ),
             errors=errors,
         )
 
@@ -157,13 +193,31 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             self.init_info = merge_user_input(self.init_info, user_input, "climate")
+            return await self.async_step_fourth()
+
+        return self.async_show_form(
+            step_id="third",
+            data_schema=await build_schema_for_device_class(self, "climate", False),
+            errors=errors,
+        )
+
+    async def async_step_fourth(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle selecting the thermostat."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            bedrooms = convert_bedroom_input_to_config_entry(self.init_info, user_input)
+            print(f"bedrooms: {bedrooms}")
+            self.init_info = merge_user_input(self.init_info, bedrooms, "bedroom")
+            print(f"init_info: {self.init_info}")
             return self.async_create_entry(
                 title=DOMAIN,
                 data=self.init_info,
             )
 
         return self.async_show_form(
-            step_id="third",
-            data_schema=await build_schema(self, "climate", False),
+            step_id="fourth",
+            data_schema=await build_schema_for_areas(self),
             errors=errors,
         )
