@@ -2,6 +2,7 @@
 
 from unittest.mock import MagicMock, call
 
+from freezegun import freeze_time
 import pytest
 
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
@@ -11,6 +12,7 @@ from homeassistant.components.hvac_zoning import (
     determine_action,
     determine_change_in_temperature,
     determine_cover_service_to_call,
+    determine_is_night_time,
     get_all_cover_entity_ids,
     get_all_temperature_entity_ids,
 )
@@ -158,6 +160,27 @@ def test_determine_change_in_temperature(
         target_temperature, hvac_mode, action
     )
     assert change_in_temperature == expected_change_in_temperature
+
+
+@pytest.mark.parametrize(
+    ("test_date", "bed_time", "wake_time", "expected_result"),
+    [
+        ("2024-01-01 04:59:59", "21:00:00", "05:00:00", True),
+        ("2024-01-01 21:00:01", "21:00:00", "05:00:00", True),
+        ("2024-01-01 23:59:59", "21:00:00", "05:00:00", True),
+        ("2024-01-01 05:00:00", "21:00:00", "05:00:00", False),
+        ("2024-01-01 21:00:00", "21:00:00", "05:00:00", False),
+        ("2024-01-01 12:00:00", "21:00:00", "05:00:00", False),
+    ],
+)
+def test_determine_is_night_time(
+    test_date, bed_time, wake_time, expected_result, hass: HomeAssistant
+) -> None:
+    """Test determine is night time."""
+    with freeze_time(test_date):
+        is_night_time = determine_is_night_time(bed_time, wake_time)
+
+        assert is_night_time is expected_result
 
 
 async def test_adjust_house(hass: HomeAssistant) -> None:

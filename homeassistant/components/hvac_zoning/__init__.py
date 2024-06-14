@@ -1,6 +1,7 @@
 """The HVAC Zoning integration."""
 
 from __future__ import annotations
+import datetime
 
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
 from homeassistant.config_entries import ConfigEntry
@@ -50,6 +51,34 @@ def determine_action(
                     return IDLE
 
     return ACTIVE
+
+
+def determine_is_night_time(bed_time, wake_time):
+    """Determine is night time."""
+    now = datetime.datetime.now()
+    now_date = now.strftime("%Y-%m-%d")
+    now_time = now.strftime("%H:%M:%S")
+
+    if now_time > bed_time and now_time <= "23:59:59":
+        bed_datetime = datetime.datetime.strptime(
+            f"{now_date} {bed_time}", "%Y-%m-%d %H:%M:%S"
+        )
+        wake_date = (now + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        wake_datetime = datetime.datetime.strptime(
+            f"{wake_date} {wake_time}", "%Y-%m-%d %H:%M:%S"
+        )
+    elif now_time >= "00:00:00" and now_time < wake_time:
+        bed_date = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        bed_datetime = datetime.datetime.strptime(
+            f"{bed_date} {bed_time}", "%Y-%m-%d %H:%M:%S"
+        )
+        wake_datetime = datetime.datetime.strptime(
+            f"{now_date} {wake_time}", "%Y-%m-%d %H:%M:%S"
+        )
+    else:
+        return False
+
+    return now > bed_datetime and now < wake_datetime
 
 
 def determine_cover_service_to_call(
@@ -144,7 +173,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         data = event_dict["data"]
         entity_id = data["entity_id"]
         config_entry_data = config_entry.as_dict()["data"]
-        config_entry_data_with_only_valid_areas = filter_to_valid_areas(config_entry_data)
+        config_entry_data_with_only_valid_areas = filter_to_valid_areas(
+            config_entry_data
+        )
         areas = config_entry_data_with_only_valid_areas.get("areas", {})
         cover_entity_ids = get_all_cover_entity_ids(areas)
         temperature_entity_ids = get_all_temperature_entity_ids(areas)
