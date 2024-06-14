@@ -1,4 +1,5 @@
 """Test init."""
+
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -168,13 +169,15 @@ async def test_adjust_house(hass: HomeAssistant) -> None:
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         data={
-            "master_bedroom": {
-                "covers": [cover_entity_id],
-                "temperature": area_actual_temperature_entity_id,
-            },
-            "main_floor": {
-                "climate": central_thermostat_entity_id,
-            },
+            "areas": {
+                "master_bedroom": {
+                    "covers": [cover_entity_id],
+                    "temperature": area_actual_temperature_entity_id,
+                },
+                "main_floor": {
+                    "climate": central_thermostat_entity_id,
+                },
+            }
         },
     )
     hass.states.async_set(
@@ -232,13 +235,15 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         data={
-            "master_bedroom": {
-                "covers": [cover_entity_id],
-                "temperature": area_actual_temperature_entity_id,
-            },
-            "main_floor": {
-                "climate": central_thermostat_entity_id,
-            },
+            "areas": {
+                "master_bedroom": {
+                    "covers": [cover_entity_id],
+                    "temperature": area_actual_temperature_entity_id,
+                },
+                "main_floor": {
+                    "climate": central_thermostat_entity_id,
+                },
+            }
         },
     )
     hass.states.async_set(

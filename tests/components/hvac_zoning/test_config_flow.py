@@ -382,14 +382,32 @@ def test_get_all_rooms(user_input1, user_input2, expected_output) -> None:
             },
             "covers",
             {
-                "office": {"covers": ["cover.office_vent"]},
-                "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+                "areas": {
+                    "office": {"covers": ["cover.office_vent"]},
+                    "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+                }
+            },
+        ),
+        (
+            {"areas": {}},
+            {
+                "office": ["cover.office_vent"],
+                "upstairs_bathroom": ["cover.upstairs_bathroom_vent"],
+            },
+            "covers",
+            {
+                "areas": {
+                    "office": {"covers": ["cover.office_vent"]},
+                    "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+                }
             },
         ),
         (
             {
-                "office": {"covers": ["cover.office_vent"]},
-                "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+                "areas": {
+                    "office": {"covers": ["cover.office_vent"]},
+                    "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+                }
             },
             {
                 "office": "sensor.office_temperature",
@@ -397,59 +415,67 @@ def test_get_all_rooms(user_input1, user_input2, expected_output) -> None:
             },
             "temperature",
             {
-                "office": {
-                    "covers": ["cover.office_vent"],
-                    "temperature": "sensor.office_temperature",
-                },
-                "upstairs_bathroom": {
-                    "covers": ["cover.upstairs_bathroom_vent"],
-                    "temperature": "sensor.upstairs_bathroom_temperature",
-                },
+                "areas": {
+                    "office": {
+                        "covers": ["cover.office_vent"],
+                        "temperature": "sensor.office_temperature",
+                    },
+                    "upstairs_bathroom": {
+                        "covers": ["cover.upstairs_bathroom_vent"],
+                        "temperature": "sensor.upstairs_bathroom_temperature",
+                    },
+                }
             },
         ),
         (
             {
-                "main_floor": {
-                    "covers": [
-                        "cover.living_room_northeast_vent",
-                    ],
-                    "temperature": "sensor.main_floor_temperature",
-                },
-                "upstairs_bathroom": {
-                    "covers": ["cover.upstairs_bathroom_vent"],
-                    "temperature": "sensor.upstairs_bathroom_temperature",
-                },
+                "areas": {
+                    "main_floor": {
+                        "covers": [
+                            "cover.living_room_northeast_vent",
+                        ],
+                        "temperature": "sensor.main_floor_temperature",
+                    },
+                    "upstairs_bathroom": {
+                        "covers": ["cover.upstairs_bathroom_vent"],
+                        "temperature": "sensor.upstairs_bathroom_temperature",
+                    },
+                }
             },
             {
                 "main_floor": "climate.living_room_thermostat",
             },
             "climate",
             {
-                "main_floor": {
-                    "climate": "climate.living_room_thermostat",
-                    "covers": [
-                        "cover.living_room_northeast_vent",
-                    ],
-                    "temperature": "sensor.main_floor_temperature",
-                },
-                "upstairs_bathroom": {
-                    "covers": ["cover.upstairs_bathroom_vent"],
-                    "temperature": "sensor.upstairs_bathroom_temperature",
-                },
+                "areas": {
+                    "main_floor": {
+                        "climate": "climate.living_room_thermostat",
+                        "covers": [
+                            "cover.living_room_northeast_vent",
+                        ],
+                        "temperature": "sensor.main_floor_temperature",
+                    },
+                    "upstairs_bathroom": {
+                        "covers": ["cover.upstairs_bathroom_vent"],
+                        "temperature": "sensor.upstairs_bathroom_temperature",
+                    },
+                }
             },
         ),
         (
             {
-                "main_floor": {
-                    "covers": [
-                        "cover.living_room_northeast_vent",
-                    ],
-                    "temperature": "sensor.main_floor_temperature",
-                },
-                "upstairs_bathroom": {
-                    "covers": ["cover.upstairs_bathroom_vent"],
-                    "temperature": "sensor.upstairs_bathroom_temperature",
-                },
+                "areas": {
+                    "main_floor": {
+                        "covers": [
+                            "cover.living_room_northeast_vent",
+                        ],
+                        "temperature": "sensor.main_floor_temperature",
+                    },
+                    "upstairs_bathroom": {
+                        "covers": ["cover.upstairs_bathroom_vent"],
+                        "temperature": "sensor.upstairs_bathroom_temperature",
+                    },
+                }
             },
             {
                 "main_floor": True,
@@ -457,18 +483,20 @@ def test_get_all_rooms(user_input1, user_input2, expected_output) -> None:
             },
             "bedroom",
             {
-                "main_floor": {
-                    "bedroom": True,
-                    "covers": [
-                        "cover.living_room_northeast_vent",
-                    ],
-                    "temperature": "sensor.main_floor_temperature",
-                },
-                "upstairs_bathroom": {
-                    "bedroom": False,
-                    "covers": ["cover.upstairs_bathroom_vent"],
-                    "temperature": "sensor.upstairs_bathroom_temperature",
-                },
+                "areas": {
+                    "main_floor": {
+                        "bedroom": True,
+                        "covers": [
+                            "cover.living_room_northeast_vent",
+                        ],
+                        "temperature": "sensor.main_floor_temperature",
+                    },
+                    "upstairs_bathroom": {
+                        "bedroom": False,
+                        "covers": ["cover.upstairs_bathroom_vent"],
+                        "temperature": "sensor.upstairs_bathroom_temperature",
+                    },
+                }
             },
         ),
     ],
@@ -481,16 +509,18 @@ def test_merge_user_input(config_entry, user_input, key, expected_output) -> Non
 def test_convert_bedroom_input_to_config_entry() -> None:
     """Test convert array to config entry."""
     config_entry = {
-        "main_floor": {
-            "covers": [
-                "cover.living_room_northeast_vent",
-            ],
-            "temperature": "sensor.main_floor_temperature",
-        },
-        "upstairs_bathroom": {
-            "covers": ["cover.upstairs_bathroom_vent"],
-            "temperature": "sensor.upstairs_bathroom_temperature",
-        },
+        "areas": {
+            "main_floor": {
+                "covers": [
+                    "cover.living_room_northeast_vent",
+                ],
+                "temperature": "sensor.main_floor_temperature",
+            },
+            "upstairs_bathroom": {
+                "covers": ["cover.upstairs_bathroom_vent"],
+                "temperature": "sensor.upstairs_bathroom_temperature",
+            },
+        }
     }
     user_input = {"bedrooms": ["master_bedroom"]}
 
@@ -527,8 +557,10 @@ async def test_step_user_with_user_input(hass: HomeAssistant) -> None:
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "second"
     assert flow.init_info == {
-        "office": {"covers": ["cover.office_vent"]},
-        "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+        "areas": {
+            "office": {"covers": ["cover.office_vent"]},
+            "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
+        }
     }
 
 
@@ -558,12 +590,14 @@ async def test_step_second_with_user_input(hass: HomeAssistant) -> None:
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "third"
     assert flow.init_info == {
-        "office": {
-            "temperature": "sensor.office_temperature",
-        },
-        "upstairs_bathroom": {
-            "temperature": "sensor.upstairs_bathroom_temperature",
-        },
+        "areas": {
+            "office": {
+                "temperature": "sensor.office_temperature",
+            },
+            "upstairs_bathroom": {
+                "temperature": "sensor.upstairs_bathroom_temperature",
+            },
+        }
     }
 
 
@@ -592,9 +626,11 @@ async def test_step_third_with_user_input(hass: HomeAssistant) -> None:
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "fourth"
     assert flow.init_info == {
-        "main_floor": {
-            "climate": "climate.living_room_thermostat",
-        },
+        "areas": {
+            "main_floor": {
+                "climate": "climate.living_room_thermostat",
+            },
+        }
     }
 
 
@@ -620,7 +656,9 @@ async def test_step_fourth_with_user_input(hass: HomeAssistant) -> None:
 
     assert result["title"] == DOMAIN
     assert result["data"] == {
-        "master_bedroom": {
-            "bedroom": True,
-        },
+        "areas": {
+            "master_bedroom": {
+                "bedroom": True,
+            },
+        }
     }

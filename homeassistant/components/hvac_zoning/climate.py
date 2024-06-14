@@ -60,16 +60,18 @@ async def async_setup_entry(
 ) -> None:
     """Async setup entry."""
 
-    user_input = config_entry.as_dict()["data"]
-    areas = filter_to_valid_areas(user_input)
-    thermostat_entity_ids = get_all_thermostat_entity_ids(user_input)
+    config_entry_data = config_entry.as_dict()["data"]
+    config_entry_data_with_only_valid_areas = filter_to_valid_areas(config_entry_data)
+    areas = config_entry_data_with_only_valid_areas.get("areas", {})
+    thermostat_entity_ids = get_all_thermostat_entity_ids(config_entry_data)
+    thermostat_entity_id = thermostat_entity_ids[0]
     async_add_entities(
         [
             Thermostat(
                 hass,
                 key + "_thermostat",
                 value["temperature"],
-                thermostat_entity_ids[0],
+                thermostat_entity_id,
             )
             for key, value in areas.items()
         ]

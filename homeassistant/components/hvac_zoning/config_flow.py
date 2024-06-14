@@ -128,13 +128,15 @@ def get_all_rooms(user_input1, user_input2):
 
 def merge_user_input(config_entry, user_input, key):
     """Merge user input."""
-    rooms = get_all_rooms(config_entry, user_input)
+    rooms = get_all_rooms(config_entry.get("areas", {}), user_input)
     return {
-        room: {
-            **config_entry.get(room, {}),
-            **({key: user_input.get(room)} if room in user_input else {}),
+        "areas": {
+            room: {
+                **config_entry.get("areas", {}).get(room, {}),
+                **({key: user_input.get(room)} if room in user_input else {}),
+            }
+            for room in rooms
         }
-        for room in rooms
     }
 
 
@@ -142,7 +144,7 @@ def convert_bedroom_input_to_config_entry(config_entry, user_input):
     """Convert bedroom input to config entry."""
     bedrooms = user_input.get("bedrooms", [])
     bedroom_config_entry = {bedroom: True for bedroom in bedrooms}
-    rooms = get_all_rooms(config_entry, bedroom_config_entry)
+    rooms = get_all_rooms(config_entry.get("areas", {}), bedroom_config_entry)
     return {room: room in bedrooms for room in rooms}
 
 
@@ -159,6 +161,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             self.init_info = merge_user_input(self.init_info, user_input, "covers")
+            print(f"init_info1: {self.init_info}")
             return await self.async_step_second()
 
         return self.async_show_form(
@@ -176,6 +179,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             self.init_info = merge_user_input(self.init_info, user_input, "temperature")
+            print(f"init_info2: {self.init_info}")
             return await self.async_step_third()
 
         return self.async_show_form(
@@ -193,6 +197,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             self.init_info = merge_user_input(self.init_info, user_input, "climate")
+            print(f"init_info3: {self.init_info}")
             return await self.async_step_fourth()
 
         return self.async_show_form(
@@ -209,6 +214,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             bedrooms = convert_bedroom_input_to_config_entry(self.init_info, user_input)
             self.init_info = merge_user_input(self.init_info, bedrooms, "bedroom")
+            print(f"init_info4: {self.init_info}")
             return self.async_create_entry(
                 title=DOMAIN,
                 data=self.init_info,

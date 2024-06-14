@@ -81,14 +81,15 @@ def determine_change_in_temperature(target_temperature, hvac_mode, action):
 
 def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
     """Adjust house."""
-    user_input = config_entry.as_dict()["data"]
-    central_thermostat_entity_id = get_all_thermostat_entity_ids(user_input)[0]
+    config_entry_data = config_entry.as_dict()["data"]
+    central_thermostat_entity_id = get_all_thermostat_entity_ids(config_entry_data)[0]
     central_thermostat = hass.states.get(central_thermostat_entity_id)
     central_thermostat_actual_temperature = central_thermostat.attributes[
         "current_temperature"
     ]
     central_hvac_mode = central_thermostat.state
-    areas = filter_to_valid_areas(user_input)
+    config_entry_data_with_only_valid_areas = filter_to_valid_areas(config_entry_data)
+    areas = config_entry_data_with_only_valid_areas.get("areas", {})
     actions = [
         determine_action(
             hass.states.get("climate." + area + "_thermostat").attributes[
@@ -142,11 +143,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         event_type = event_dict["event_type"]
         data = event_dict["data"]
         entity_id = data["entity_id"]
-        user_input = config_entry.as_dict()["data"]
-        areas = filter_to_valid_areas(user_input)
+        config_entry_data = config_entry.as_dict()["data"]
+        areas = filter_to_valid_areas(config_entry_data)
         cover_entity_ids = get_all_cover_entity_ids(areas)
         temperature_entity_ids = get_all_temperature_entity_ids(areas)
-        thermostat_entity_ids = get_all_thermostat_entity_ids(user_input)
+        thermostat_entity_ids = get_all_thermostat_entity_ids(config_entry_data)
         virtual_thermostat_entity_ids = [
             "climate." + area + "_thermostat" for area in areas
         ]
