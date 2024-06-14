@@ -144,7 +144,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         data = event_dict["data"]
         entity_id = data["entity_id"]
         config_entry_data = config_entry.as_dict()["data"]
-        areas = filter_to_valid_areas(config_entry_data)
+        config_entry_data_with_only_valid_areas = filter_to_valid_areas(config_entry_data)
+        areas = config_entry_data_with_only_valid_areas.get("areas", {})
         cover_entity_ids = get_all_cover_entity_ids(areas)
         temperature_entity_ids = get_all_temperature_entity_ids(areas)
         thermostat_entity_ids = get_all_thermostat_entity_ids(config_entry_data)
