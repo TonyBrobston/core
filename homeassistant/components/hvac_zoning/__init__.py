@@ -56,29 +56,14 @@ def determine_action(
 def determine_is_night_time(bed_time, wake_time):
     """Determine is night time."""
     now = datetime.datetime.now()
-    now_date = now.strftime("%Y-%m-%d")
-    now_time = now.strftime("%H:%M:%S")
+    bed_time = datetime.time.fromisoformat(bed_time)
+    wake_time = datetime.time.fromisoformat(wake_time)
 
-    if now_time > bed_time and now_time <= "23:59:59":
-        bed_datetime = datetime.datetime.strptime(
-            f"{now_date} {bed_time}", "%Y-%m-%d %H:%M:%S"
-        )
-        wake_date = (now + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        wake_datetime = datetime.datetime.strptime(
-            f"{wake_date} {wake_time}", "%Y-%m-%d %H:%M:%S"
-        )
-    elif now_time >= "00:00:00" and now_time < wake_time:
-        bed_date = (now - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        bed_datetime = datetime.datetime.strptime(
-            f"{bed_date} {bed_time}", "%Y-%m-%d %H:%M:%S"
-        )
-        wake_datetime = datetime.datetime.strptime(
-            f"{now_date} {wake_time}", "%Y-%m-%d %H:%M:%S"
-        )
-    else:
-        return False
-
-    return now > bed_datetime and now < wake_datetime
+    return (
+        bed_time > wake_time
+        and (now.time() > bed_time or now.time() < wake_time)
+        or (bed_time <= wake_time and now.time() >= bed_time and now.time() < wake_time)
+    )
 
 
 def determine_cover_service_to_call(
