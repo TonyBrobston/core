@@ -607,7 +607,6 @@ async def test_step_fourth_without_user_input(hass: HomeAssistant) -> None:
 
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "fourth"
-    print(f"foo: {result['data_schema'].schema}")
     assert result["data_schema"].schema == {}
 
 
