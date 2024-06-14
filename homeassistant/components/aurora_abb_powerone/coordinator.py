@@ -14,7 +14,7 @@ from .const import DOMAIN, SCAN_INTERVAL
 _LOGGER = logging.getLogger(__name__)
 
 
-class AuroraAbbDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float]]):  # pylint: disable=hass-enforce-coordinator-module
+class AuroraAbbDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float]]):
     """Class to manage fetching AuroraAbbPowerone data."""
 
     def __init__(self, hass: HomeAssistant, comport: str, address: int) -> None:
@@ -41,7 +41,10 @@ class AuroraAbbDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float]]):  
                 grid_current = self.client.measure(2, True)
                 power_watts = self.client.measure(3, True)
                 frequency = self.client.measure(4)
+                i_leak_dcdc = self.client.measure(6)
+                i_leak_inverter = self.client.measure(7)
                 temperature_c = self.client.measure(21)
+                r_iso = self.client.measure(30)
                 energy_wh = self.client.cumulated_energy(5)
                 [alarm, *_] = self.client.alarms()
             except AuroraTimeoutError:
@@ -64,7 +67,10 @@ class AuroraAbbDataUpdateCoordinator(DataUpdateCoordinator[dict[str, float]]):  
                 data["grid_current"] = round(grid_current, 1)
                 data["instantaneouspower"] = round(power_watts, 1)
                 data["grid_frequency"] = round(frequency, 1)
+                data["i_leak_dcdc"] = i_leak_dcdc
+                data["i_leak_inverter"] = i_leak_inverter
                 data["temp"] = round(temperature_c, 1)
+                data["r_iso"] = r_iso
                 data["totalenergy"] = round(energy_wh / 1000, 2)
                 data["alarm"] = alarm
                 self.available = True

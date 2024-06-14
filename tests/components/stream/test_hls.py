@@ -69,7 +69,7 @@ class HlsClient:
 
 
 @pytest.fixture
-def hls_stream(hass, hass_client):
+def hls_stream(hass: HomeAssistant, hass_client: ClientSessionGenerator):
     """Create test fixture for creating an HLS client for a stream."""
 
     async def create_client_for_stream(stream):
@@ -309,11 +309,14 @@ async def test_stream_retries(
 
     def av_open_side_effect(*args, **kwargs):
         hass.loop.call_soon_threadsafe(futures.pop().set_result, None)
+        # pylint: disable-next=c-extension-no-member
         raise av.error.InvalidDataError(-2, "error")
 
-    with patch("av.open") as av_open, patch(
-        "homeassistant.components.stream.Stream._set_state", set_state_wrapper
-    ), patch("homeassistant.components.stream.STREAM_RESTART_INCREMENT", 0):
+    with (
+        patch("av.open") as av_open,
+        patch("homeassistant.components.stream.Stream._set_state", set_state_wrapper),
+        patch("homeassistant.components.stream.STREAM_RESTART_INCREMENT", 0),
+    ):
         av_open.side_effect = av_open_side_effect
         # Request stream. Enable retries which are disabled by default in tests.
         should_retry.return_value = True
