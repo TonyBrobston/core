@@ -104,8 +104,8 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
     for area, devices in areas.items():
         area_thermostat = hass.states.get("climate." + area + "_thermostat")
         area_target_temperature = area_thermostat.attributes["temperature"]
-        temperature_sensor = hass.states.get(devices["temperature"])
-        area_actual_temperature = temperature_sensor.state
+        area_temperature_sensor = hass.states.get(devices["temperature"])
+        area_actual_temperature = area_temperature_sensor.state
         service_to_call = determine_cover_service_to_call(
             area_target_temperature,
             area_actual_temperature,
