@@ -12,6 +12,7 @@ from homeassistant.components.hvac_zoning import (
     determine_action,
     determine_change_in_temperature,
     determine_cover_service_to_call,
+    determine_if_night_time_mode,
     determine_is_night_time,
     get_all_cover_entity_ids,
     get_all_temperature_entity_ids,
@@ -79,6 +80,25 @@ def test_get_all_temperature_entity_ids() -> None:
 
 
 @pytest.mark.parametrize(
+    ("areas", "expected_result"),
+    [
+        ({"office": {"bedroom": True}}, True),
+        ({"upstairs_bathroom": {"bedroom": False}}, False),
+        ({"office": {"bedroom": True}, "upstairs_bathroom": {"bedroom": False}}, True),
+        (
+            {"office": {"bedroom": False}, "upstairs_bathroom": {"bedroom": False}},
+            False,
+        ),
+        ({}, False),
+    ],
+)
+def test_determine_if_night_time_mode(areas, expected_result) -> None:
+    """Test determine if night time mode."""
+    is_night_time_mode = determine_if_night_time_mode(areas)
+    assert is_night_time_mode == expected_result
+
+
+@pytest.mark.parametrize(
     ("target_temperature", "actual_temperature", "hvac_mode", "expected_action"),
     [
         (73, 71, HVACMode.HEAT, ACTIVE),
@@ -109,22 +129,30 @@ def test_determine_action(
         "actual_temperature",
         "hvac_mode",
         "thermostat_action",
+        "is_night_time_mode",
+        "is_night_time",
+        "is_bedroom",
         "expected_service",
     ),
     [
-        (71, 70, HVACMode.HEAT, None, SERVICE_OPEN_COVER),
-        (69, 70, HVACMode.HEAT, None, SERVICE_CLOSE_COVER),
-        (70, 70, HVACMode.HEAT, None, SERVICE_CLOSE_COVER),
-        (69, 70, HVACMode.COOL, None, SERVICE_OPEN_COVER),
-        (71, 70, HVACMode.COOL, None, SERVICE_CLOSE_COVER),
-        (70, 70, HVACMode.COOL, None, SERVICE_CLOSE_COVER),
-        (71, 70, None, None, SERVICE_OPEN_COVER),
-        (71, 70, HVACMode.HEAT_COOL, None, SERVICE_OPEN_COVER),
-        (None, 70, HVACMode.HEAT, None, SERVICE_OPEN_COVER),
-        (70, None, HVACMode.HEAT, None, SERVICE_OPEN_COVER),
-        (None, 70, HVACMode.COOL, None, SERVICE_OPEN_COVER),
-        (70, None, HVACMode.COOL, None, SERVICE_OPEN_COVER),
-        (70, 70, HVACMode.COOL, IDLE, SERVICE_OPEN_COVER),
+        (71, 70, HVACMode.HEAT, None, False, False, False, SERVICE_OPEN_COVER),
+        (69, 70, HVACMode.HEAT, None, False, False, False, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.HEAT, None, False, False, False, SERVICE_CLOSE_COVER),
+        (69, 70, HVACMode.COOL, None, False, False, False, SERVICE_OPEN_COVER),
+        (71, 70, HVACMode.COOL, None, False, False, False, SERVICE_CLOSE_COVER),
+        (71, 70, None, None, False, False, False, SERVICE_OPEN_COVER),
+        (71, 70, HVACMode.HEAT_COOL, None, False, False, False, SERVICE_OPEN_COVER),
+        (None, 70, HVACMode.HEAT, None, False, False, False, SERVICE_OPEN_COVER),
+        (70, None, HVACMode.HEAT, None, False, False, False, SERVICE_OPEN_COVER),
+        (None, 70, HVACMode.COOL, None, False, False, False, SERVICE_OPEN_COVER),
+        (70, None, HVACMode.COOL, None, False, False, False, SERVICE_OPEN_COVER),
+        (70, 70, HVACMode.COOL, IDLE, False, False, False, SERVICE_OPEN_COVER),
+        (70, 70, HVACMode.COOL, None, True, True, True, SERVICE_OPEN_COVER),
+        (70, 70, HVACMode.COOL, None, True, True, False, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.COOL, None, True, False, False, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.COOL, None, False, False, False, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.COOL, None, False, True, False, SERVICE_CLOSE_COVER),
+        (70, 70, HVACMode.COOL, None, False, True, True, SERVICE_CLOSE_COVER),
     ],
 )
 def test_determine_cover_service(
@@ -132,11 +160,20 @@ def test_determine_cover_service(
     actual_temperature,
     hvac_mode,
     thermostat_action,
+    is_night_time_mode,
+    is_night_time,
+    is_bedroom,
     expected_service,
 ) -> None:
     """Test determine cover service."""
     service = determine_cover_service_to_call(
-        target_temperature, actual_temperature, hvac_mode, thermostat_action
+        target_temperature,
+        actual_temperature,
+        hvac_mode,
+        thermostat_action,
+        is_night_time_mode,
+        is_night_time,
+        is_bedroom,
     )
 
     assert service == expected_service
@@ -196,11 +233,15 @@ async def test_adjust_house(hass: HomeAssistant) -> None:
                 "master_bedroom": {
                     "covers": [cover_entity_id],
                     "temperature": area_actual_temperature_entity_id,
+                    "bedroom": False,
                 },
                 "main_floor": {
                     "climate": central_thermostat_entity_id,
+                    "bedroom": False,
                 },
-            }
+            },
+            "bed_time": "21:00:00",
+            "wake_time": "05:00:00",
         },
     )
     hass.states.async_set(
@@ -266,7 +307,9 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
                 "main_floor": {
                     "climate": central_thermostat_entity_id,
                 },
-            }
+            },
+            "bed_time": "21:00:00",
+            "wake_time": "05:00:00",
         },
     )
     hass.states.async_set(

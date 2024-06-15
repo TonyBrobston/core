@@ -1,6 +1,7 @@
 """The HVAC Zoning integration."""
 
 from __future__ import annotations
+
 import datetime
 
 from homeassistant.components.climate import SERVICE_SET_TEMPERATURE, HVACMode
@@ -29,6 +30,11 @@ def get_all_cover_entity_ids(areas):
 def get_all_temperature_entity_ids(areas):
     """Get all temperature entity ids."""
     return [area["temperature"] for area in areas.values() if "temperature" in area]
+
+
+def determine_if_night_time_mode(areas):
+    """Determine if night time mode."""
+    return any(area.get("bedroom", False) for area in areas.values())
 
 
 def determine_action(
@@ -71,8 +77,13 @@ def determine_cover_service_to_call(
     actual_temperature: int,
     hvac_mode: HVACMode,
     thermostat_action: str,
+    is_night_time_mode: bool,
+    is_night_time: bool,
+    is_bedroom: bool,
 ) -> str:
     """Determine cover service."""
+    if is_night_time_mode and is_night_time:
+        return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
     action = (
         ACTIVE
         if thermostat_action == IDLE
@@ -115,18 +126,26 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
         for area, devices in areas.items()
     ]
     thermostat_action = ACTIVE if ACTIVE in actions else IDLE
-    for area, devices in areas.items():
-        area_thermostat = hass.states.get("climate." + area + "_thermostat")
+    is_night_time_mode = determine_if_night_time_mode(areas)
+    is_night_time = determine_is_night_time(
+        config_entry_data["bed_time"], config_entry_data["wake_time"]
+    )
+    for key, values in areas.items():
+        area_thermostat = hass.states.get("climate." + key + "_thermostat")
         area_target_temperature = area_thermostat.attributes["temperature"]
-        area_temperature_sensor = hass.states.get(devices["temperature"])
+        area_temperature_sensor = hass.states.get(values["temperature"])
         area_actual_temperature = area_temperature_sensor.state
+        is_bedroom = values["bedroom"]
         service_to_call = determine_cover_service_to_call(
             area_target_temperature,
             area_actual_temperature,
             central_hvac_mode,
             thermostat_action,
+            is_night_time_mode,
+            is_night_time,
+            is_bedroom,
         )
-        for cover in devices["covers"]:
+        for cover in values["covers"]:
             hass.services.call(
                 Platform.COVER, service_to_call, service_data={ATTR_ENTITY_ID: cover}
             )
