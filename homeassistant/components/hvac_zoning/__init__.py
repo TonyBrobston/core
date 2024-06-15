@@ -63,7 +63,7 @@ def determine_action(
 def determine_is_night_time(bed_time, wake_time):
     """Determine is night time."""
     # now = datetime.datetime.now()
-    now = datetime.datetime.astimezone(dt_util.get_default_time_zone())
+    now = datetime.datetime.now().astimezone(dt_util.get_default_time_zone())
     bed_time = datetime.time.fromisoformat(bed_time)
     wake_time = datetime.time.fromisoformat(wake_time)
 
