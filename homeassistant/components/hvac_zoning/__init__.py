@@ -82,12 +82,6 @@ def determine_cover_service_to_call(
     is_bedroom: bool,
 ) -> str:
     """Determine cover service."""
-    LOGGER.info(
-        f"\nis_night_time_mode: {is_night_time_mode}"
-        f"\nis_night_time: {is_night_time}"
-        f"\nservice_to_call: {SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER}"
-        "\n--------------------------------------------------------"
-    )
     # if is_night_time_mode and is_night_time:
     #     return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
     action = (
@@ -142,6 +136,13 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
         area_temperature_sensor = hass.states.get(values["temperature"])
         area_actual_temperature = area_temperature_sensor.state
         is_bedroom = values["bedroom"]
+        LOGGER.info(
+            f"\narea.id: {key}"
+            f"\nis_night_time_mode: {is_night_time_mode}"
+            f"\nis_night_time: {is_night_time}"
+            f"\nservice_to_call: {SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER}"
+            "\n--------------------------------------------------------"
+        )
         service_to_call = determine_cover_service_to_call(
             area_target_temperature,
             area_actual_temperature,
