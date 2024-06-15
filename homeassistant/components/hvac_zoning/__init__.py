@@ -62,7 +62,6 @@ def determine_action(
 
 def determine_is_night_time(bed_time, wake_time):
     """Determine is night time."""
-    # now = datetime.datetime.now()
     now = datetime.datetime.now().astimezone(dt_util.get_default_time_zone())
     bed_time = datetime.time.fromisoformat(bed_time)
     wake_time = datetime.time.fromisoformat(wake_time)
@@ -79,6 +78,11 @@ def determine_is_night_time(bed_time, wake_time):
         and (now.time() > bed_time or now.time() < wake_time)
         or (bed_time <= wake_time and now.time() >= bed_time and now.time() < wake_time)
     )
+
+
+def filter_to_bedrooms(areas):
+    """Filter to bedrooms."""
+    return {key: value for key, value in areas.items() if value.get("bedroom", False)}
 
 
 def determine_cover_service_to_call(
@@ -124,6 +128,12 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
     central_hvac_mode = central_thermostat.state
     config_entry_data_with_only_valid_areas = filter_to_valid_areas(config_entry_data)
     areas = config_entry_data_with_only_valid_areas.get("areas", {})
+    bedroom_areas = filter_to_bedrooms(areas)
+    is_night_time_mode = determine_if_night_time_mode(areas)
+    is_night_time = determine_is_night_time(
+        config_entry_data["bed_time"], config_entry_data["wake_time"]
+    )
+    thermostat_areas = bedroom_areas if is_night_time_mode and is_night_time else areas
     actions = [
         determine_action(
             hass.states.get("climate." + area + "_thermostat").attributes[
@@ -132,13 +142,9 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             hass.states.get(devices["temperature"]).state,
             central_hvac_mode,
         )
-        for area, devices in areas.items()
+        for area, devices in thermostat_areas.items()
     ]
     thermostat_action = ACTIVE if ACTIVE in actions else IDLE
-    is_night_time_mode = determine_if_night_time_mode(areas)
-    is_night_time = determine_is_night_time(
-        config_entry_data["bed_time"], config_entry_data["wake_time"]
-    )
     for key, values in areas.items():
         area_thermostat = hass.states.get("climate." + key + "_thermostat")
         area_target_temperature = area_thermostat.attributes["temperature"]

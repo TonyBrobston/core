@@ -14,6 +14,7 @@ from homeassistant.components.hvac_zoning import (
     determine_cover_service_to_call,
     determine_if_night_time_mode,
     determine_is_night_time,
+    filter_to_bedrooms,
     get_all_cover_entity_ids,
     get_all_temperature_entity_ids,
 )
@@ -218,6 +219,38 @@ def test_determine_is_night_time(
         is_night_time = determine_is_night_time(bed_time, wake_time)
 
         assert is_night_time is expected_result
+
+
+@pytest.mark.parametrize(
+    ("areas", "expected_result"),
+    [
+        (
+            {
+                "office": {
+                    "covers": ["cover.office_vent"],
+                    "temperature": "sensor.office_temperature",
+                    "bedroom": False,
+                },
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                    "bedroom": True,
+                },
+            },
+            {
+                "upstairs_bathroom": {
+                    "covers": ["cover.upstairs_bathroom_vent"],
+                    "temperature": "sensor.upstairs_bathroom_temperature",
+                    "bedroom": True,
+                },
+            },
+        ),
+        ({}, {}),
+    ],
+)
+def test_filter_to_bedrooms(areas, expected_result) -> None:
+    """Test filter to bedrooms."""
+    assert filter_to_bedrooms(areas) == expected_result
 
 
 async def test_adjust_house(hass: HomeAssistant) -> None:
