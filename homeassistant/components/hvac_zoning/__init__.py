@@ -194,12 +194,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         virtual_thermostat_entity_ids = [
             "climate." + area + "_thermostat" for area in areas
         ]
-        entity_ids = (
-            cover_entity_ids
-            + temperature_entity_ids
-            + thermostat_entity_ids
-            + virtual_thermostat_entity_ids
-        )
+        entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
         if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
             adjust_house(hass, config_entry)
             LOGGER.info(
