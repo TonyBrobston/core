@@ -82,8 +82,14 @@ def determine_cover_service_to_call(
     is_bedroom: bool,
 ) -> str:
     """Determine cover service."""
-    if is_night_time_mode and is_night_time:
-        return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
+    LOGGER.info(
+        f"\nis_night_time_mode: {is_night_time_mode}"
+        f"\nis_night_time: {is_night_time}"
+        f"\nservice_to_call: {SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER}"
+        "\n--------------------------------------------------------"
+    )
+    # if is_night_time_mode and is_night_time:
+    #     return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
     action = (
         ACTIVE
         if thermostat_action == IDLE
