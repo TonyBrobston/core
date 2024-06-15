@@ -373,7 +373,6 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
     )
     await hass.async_block_till_done()
     hass.services = MagicMock()
-    # hass.config_entries = MagicMock()
 
     await async_setup_entry(hass, config_entry)
 
