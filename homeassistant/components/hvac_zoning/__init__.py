@@ -62,7 +62,8 @@ def determine_action(
 
 def determine_is_night_time(bed_time, wake_time):
     """Determine is night time."""
-    now = datetime.datetime.now().astimezone(dt_util.get_default_time_zone())
+    timezone = dt_util.get_default_time_zone()
+    now = datetime.datetime.now().astimezone(timezone)
     bed_time = datetime.time.fromisoformat(bed_time)
     wake_time = datetime.time.fromisoformat(wake_time)
 
@@ -95,8 +96,8 @@ def determine_cover_service_to_call(
     is_bedroom: bool,
 ) -> str:
     """Determine cover service."""
-    # if is_night_time_mode and is_night_time:
-    #     return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
+    if is_night_time_mode and is_night_time:
+        return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
     action = (
         ACTIVE
         if thermostat_action == IDLE
