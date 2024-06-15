@@ -19,6 +19,7 @@ from homeassistant.components.hvac_zoning import (
     get_all_temperature_entity_ids,
 )
 from homeassistant.components.hvac_zoning.const import ACTIVE, DOMAIN, IDLE
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
@@ -336,14 +337,17 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
                 "master_bedroom": {
                     "covers": [cover_entity_id],
                     "temperature": area_actual_temperature_entity_id,
+                    "bedroom": False,
                 },
                 "main_floor": {
                     "climate": central_thermostat_entity_id,
+                    "bedroom": False,
                 },
             },
             "bed_time": "21:00:00",
             "wake_time": "05:00:00",
         },
+        state=ConfigEntryState.LOADED,
     )
     hass.states.async_set(
         entity_id=central_thermostat_entity_id,
@@ -369,6 +373,7 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
     )
     await hass.async_block_till_done()
     hass.services = MagicMock()
+    # hass.config_entries = MagicMock()
 
     await async_setup_entry(hass, config_entry)
 
