@@ -15,6 +15,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant
+import homeassistant.util.dt as dt_util
 
 from .const import ACTIVE, DOMAIN, IDLE, LOGGER, SUPPORTED_HVAC_MODES
 from .utils import filter_to_valid_areas, get_all_thermostat_entity_ids
@@ -61,7 +62,8 @@ def determine_action(
 
 def determine_is_night_time(bed_time, wake_time):
     """Determine is night time."""
-    now = datetime.datetime.now()
+    # now = datetime.datetime.now()
+    now = datetime.datetime.astimezone(dt_util.get_default_time_zone())
     bed_time = datetime.time.fromisoformat(bed_time)
     wake_time = datetime.time.fromisoformat(wake_time)
 
