@@ -9,73 +9,44 @@ from homeassistant.components.hvac_zoning.utils import (
 
 
 @pytest.mark.parametrize(
-    ("config_entry_data", "expected_areas"),
+    ("config_entry_data", "expected_config_entry_data"),
     [
         (
             {
                 "areas": {
                     "basement": {
-                        "covers": [
-                            "cover.basement_west_vent",
-                        ],
+                        "covers": [],
                         "temperature": "sensor.basement_temperature",
+                        "bedroom": False,
                     },
-                    "guest_bedroom": {
-                        "covers": ["cover.guest_bedroom_vent"],
-                        "temperature": "sensor.guest_bedroom_temperature",
+                    "office": {
+                        "covers": ["cover.office_vent"],
+                        "temperature": "sensor.office_temperature",
+                        "bedroom": False,
                     },
-                    "upstairs_bathroom": {"covers": ["cover.upstairs_bathroom_vent"]},
-                }
+                },
+                "bed_time": "21:00:00",
+                "wake_time": "05:00:00",
             },
             {
                 "areas": {
-                    "basement": {
-                        "covers": [
-                            "cover.basement_west_vent",
-                        ],
-                        "temperature": "sensor.basement_temperature",
+                    "office": {
+                        "covers": ["cover.office_vent"],
+                        "temperature": "sensor.office_temperature",
+                        "bedroom": False,
                     },
-                    "guest_bedroom": {
-                        "covers": ["cover.guest_bedroom_vent"],
-                        "temperature": "sensor.guest_bedroom_temperature",
-                    },
-                }
-            },
-        ),
-        (
-            {
-                "areas": {
-                    "guest_bedroom": {
-                        "covers": ["cover.guest_bedroom_vent"],
-                        "temperature": "sensor.guest_bedroom_temperature",
-                    },
-                    "upstairs_bathroom": {
-                        "covers": ["cover.upstairs_bathroom_vent"],
-                        "temperature": "sensor.upstairs_bathroom_temperature",
-                    },
-                    "main_floor": {"temperature": "sensor.main_floor_temperature"},
-                }
-            },
-            {
-                "areas": {
-                    "guest_bedroom": {
-                        "covers": ["cover.guest_bedroom_vent"],
-                        "temperature": "sensor.guest_bedroom_temperature",
-                    },
-                    "upstairs_bathroom": {
-                        "covers": ["cover.upstairs_bathroom_vent"],
-                        "temperature": "sensor.upstairs_bathroom_temperature",
-                    },
-                }
+                },
+                "bed_time": "21:00:00",
+                "wake_time": "05:00:00",
             },
         ),
     ],
 )
-def test_filter_to_valid_areas(config_entry_data, expected_areas) -> None:
+def test_filter_to_valid_areas(config_entry_data, expected_config_entry_data) -> None:
     """Test filter to valid areas."""
-    areas = filter_to_valid_areas(config_entry_data)
+    actual_config_entry_data = filter_to_valid_areas(config_entry_data)
 
-    assert areas == expected_areas
+    assert actual_config_entry_data == expected_config_entry_data
 
 
 @pytest.mark.parametrize(

@@ -3,17 +3,19 @@
 
 def filter_to_valid_areas(config_entry_data):
     """Filter to valid areas."""
+    areas = config_entry_data.get("areas", {})
     return {
+        **config_entry_data,
         "areas": {
-            area: devices
-            for area, devices in config_entry_data.get("areas", {}).items()
-            if "temperature" in devices and "covers" in devices
-        }
+            key: value
+            for key, value in areas.items()
+            if "covers" in value and len(value["covers"]) > 0
+        },
     }
 
 
 def get_all_thermostat_entity_ids(config_entry_data):
-    """Get thermostat enitty ids."""
+    """Get thermostat entity ids."""
     return [
         area["climate"]
         for area in config_entry_data.get("areas", {}).values()
