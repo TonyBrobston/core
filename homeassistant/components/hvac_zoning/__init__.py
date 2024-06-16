@@ -38,9 +38,7 @@ def determine_if_night_time_mode(areas):
     return any(area.get("bedroom", False) for area in areas.values())
 
 
-def determine_action(
-    target_temperature: int, actual_temperature: int, hvac_mode: HVACMode
-):
+def determine_action(target_temperature: int, actual_temperature: int, hvac_mode: str):
     """Determine action."""
     if (
         hvac_mode in SUPPORTED_HVAC_MODES
@@ -89,7 +87,7 @@ def filter_to_bedrooms(areas):
 def determine_cover_service_to_call(
     target_temperature: int,
     actual_temperature: int,
-    hvac_mode: HVACMode,
+    hvac_mode: str,
     thermostat_action: str,
     is_night_time_mode: bool,
     is_night_time: bool,
@@ -118,73 +116,91 @@ def determine_change_in_temperature(target_temperature, hvac_mode, action):
     return target_temperature
 
 
+def determine_target_temperature(hass: HomeAssistant, area):
+    """Determine thermostat temperature."""
+    thermostat = hass.states.get("climate." + area + "_thermostat")
+    return thermostat.attributes["temperature"] if thermostat else None
+
+
+def determine_actual_temperature(hass: HomeAssistant, devices):
+    """Determine thermostat temperature."""
+    temperature_sensor = hass.states.get(devices["temperature"])
+    return temperature_sensor.state if temperature_sensor else None
+
+
 def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
     """Adjust house."""
     config_entry_data = config_entry.as_dict()["data"]
     central_thermostat_entity_id = get_all_thermostat_entity_ids(config_entry_data)[0]
     central_thermostat = hass.states.get(central_thermostat_entity_id)
-    central_thermostat_actual_temperature = central_thermostat.attributes[
-        "current_temperature"
-    ]
-    central_hvac_mode = central_thermostat.state
-    config_entry_data_with_only_valid_areas = filter_to_valid_areas(config_entry_data)
-    areas = config_entry_data_with_only_valid_areas.get("areas", {})
-    bedroom_areas = filter_to_bedrooms(areas)
-    is_night_time_mode = determine_if_night_time_mode(areas)
-    is_night_time = determine_is_night_time(
-        config_entry_data["bed_time"], config_entry_data["wake_time"]
-    )
-    thermostat_areas = bedroom_areas if is_night_time_mode and is_night_time else areas
-    actions = [
-        determine_action(
-            hass.states.get("climate." + area + "_thermostat").attributes[
-                "temperature"
-            ],
-            hass.states.get(devices["temperature"]).state,
-            central_hvac_mode,
+    if central_thermostat:
+        central_thermostat_actual_temperature = central_thermostat.attributes[
+            "current_temperature"
+        ]
+        central_hvac_mode = central_thermostat.state
+        config_entry_data_with_only_valid_areas = filter_to_valid_areas(
+            config_entry_data
         )
-        for area, devices in thermostat_areas.items()
-    ]
-    thermostat_action = ACTIVE if ACTIVE in actions else IDLE
-    for key, values in areas.items():
-        area_thermostat = hass.states.get("climate." + key + "_thermostat")
-        area_target_temperature = area_thermostat.attributes["temperature"]
-        area_temperature_sensor = hass.states.get(values["temperature"])
-        area_actual_temperature = area_temperature_sensor.state
-        is_bedroom = values["bedroom"]
-        LOGGER.info(
-            f"\narea.id: {key}"
-            f"\nis_night_time_mode: {is_night_time_mode}"
-            f"\nis_night_time: {is_night_time}"
-            f"\nservice_to_call: {SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER}"
-            "\n--------------------------------------------------------"
+        areas = config_entry_data_with_only_valid_areas.get("areas", {})
+        bedroom_areas = filter_to_bedrooms(areas)
+        is_night_time_mode = determine_if_night_time_mode(areas)
+        is_night_time = determine_is_night_time(
+            config_entry_data["bed_time"], config_entry_data["wake_time"]
         )
-        service_to_call = determine_cover_service_to_call(
-            area_target_temperature,
-            area_actual_temperature,
-            central_hvac_mode,
-            thermostat_action,
-            is_night_time_mode,
-            is_night_time,
-            is_bedroom,
+        thermostat_areas = (
+            bedroom_areas if is_night_time_mode and is_night_time else areas
         )
-        for cover in values["covers"]:
-            hass.services.call(
-                Platform.COVER, service_to_call, service_data={ATTR_ENTITY_ID: cover}
-            )
-
-    hass.services.call(
-        Platform.CLIMATE,
-        SERVICE_SET_TEMPERATURE,
-        service_data={
-            ATTR_ENTITY_ID: central_thermostat_entity_id,
-            ATTR_TEMPERATURE: determine_change_in_temperature(
-                central_thermostat_actual_temperature,
+        actions = [
+            determine_action(
+                determine_target_temperature(hass, area),
+                determine_actual_temperature(hass, devices),
                 central_hvac_mode,
-                thermostat_action,
-            ),
-        },
-    )
+            )
+            for area, devices in thermostat_areas.items()
+        ]
+        thermostat_action = ACTIVE if ACTIVE in actions else IDLE
+        for key, values in areas.items():
+            area_thermostat = hass.states.get("climate." + key + "_thermostat")
+            area_temperature_sensor = hass.states.get(values["temperature"])
+            if area_thermostat and area_temperature_sensor:
+                area_actual_temperature = int(float(area_temperature_sensor.state))
+                area_target_temperature = area_thermostat.attributes["temperature"]
+                is_bedroom = values["bedroom"]
+                LOGGER.info(
+                    f"\narea.id: {key}"
+                    f"\nis_night_time_mode: {is_night_time_mode}"
+                    f"\nis_night_time: {is_night_time}"
+                    f"\nservice_to_call: {SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER}"
+                    "\n--------------------------------------------------------"
+                )
+                service_to_call = determine_cover_service_to_call(
+                    area_target_temperature,
+                    area_actual_temperature,
+                    central_hvac_mode,
+                    thermostat_action,
+                    is_night_time_mode,
+                    is_night_time,
+                    is_bedroom,
+                )
+                for cover in values["covers"]:
+                    hass.services.call(
+                        Platform.COVER,
+                        service_to_call,
+                        service_data={ATTR_ENTITY_ID: cover},
+                    )
+
+        hass.services.call(
+            Platform.CLIMATE,
+            SERVICE_SET_TEMPERATURE,
+            service_data={
+                ATTR_ENTITY_ID: central_thermostat_entity_id,
+                ATTR_TEMPERATURE: determine_change_in_temperature(
+                    central_thermostat_actual_temperature,
+                    central_hvac_mode,
+                    thermostat_action,
+                ),
+            },
+        )
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -204,8 +220,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             config_entry_data
         )
         areas = config_entry_data_with_only_valid_areas.get("areas", {})
-        cover_entity_ids = get_all_cover_entity_ids(areas)
-        temperature_entity_ids = get_all_temperature_entity_ids(areas)
+        # cover_entity_ids = get_all_cover_entity_ids(areas)
+        # temperature_entity_ids = get_all_temperature_entity_ids(areas)
         thermostat_entity_ids = get_all_thermostat_entity_ids(config_entry_data)
         virtual_thermostat_entity_ids = [
             "climate." + area + "_thermostat" for area in areas
