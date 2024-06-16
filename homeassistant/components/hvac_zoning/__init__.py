@@ -133,7 +133,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
     config_entry_data = config_entry.as_dict()["data"]
     central_thermostat_entity_id = get_all_thermostat_entity_ids(config_entry_data)[0]
     central_thermostat = hass.states.get(central_thermostat_entity_id)
-    if central_thermostat:
+    if central_thermostat and "current_temperature" in central_thermostat.attributes:
         central_thermostat_actual_temperature = central_thermostat.attributes[
             "current_temperature"
         ]
