@@ -213,6 +213,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up HVAC Zoning from a config entry."""
+    LOGGER.info("Fired async_setup_entry")
 
     hass.data.setdefault(DOMAIN, {})
 
