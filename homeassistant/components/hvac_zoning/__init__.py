@@ -196,19 +196,19 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
                         service_to_call,
                         service_data={ATTR_ENTITY_ID: cover},
                     )
-
-        hass.services.call(
-            Platform.CLIMATE,
-            SERVICE_SET_TEMPERATURE,
-            service_data={
-                ATTR_ENTITY_ID: central_thermostat_entity_id,
-                ATTR_TEMPERATURE: determine_change_in_temperature(
-                    central_thermostat_actual_temperature,
-                    central_hvac_mode,
-                    thermostat_action,
-                ),
-            },
-        )
+        if config_entry_data.get("control_central_thermostat", False):
+            hass.services.call(
+                Platform.CLIMATE,
+                SERVICE_SET_TEMPERATURE,
+                service_data={
+                    ATTR_ENTITY_ID: central_thermostat_entity_id,
+                    ATTR_TEMPERATURE: determine_change_in_temperature(
+                        central_thermostat_actual_temperature,
+                        central_hvac_mode,
+                        thermostat_action,
+                    ),
+                },
+            )
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:

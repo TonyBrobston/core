@@ -254,12 +254,14 @@ def test_filter_to_bedrooms(areas, expected_result) -> None:
     assert filter_to_bedrooms(areas) == expected_result
 
 
+central_thermostat_entity_id = "climate.living_room_thermostat"
+cover_entity_id = "cover.master_bedroom_vent"
+area_target_temperature_entity_id = "climate.master_bedroom_thermostat"
+area_actual_temperature_entity_id = "sensor.master_bedroom_temperature"
+
+
 async def test_adjust_house(hass: HomeAssistant) -> None:
     """Test adjust house."""
-    central_thermostat_entity_id = "climate.living_room_thermostat"
-    cover_entity_id = "cover.master_bedroom_vent"
-    area_target_temperature_entity_id = "climate.master_bedroom_thermostat"
-    area_actual_temperature_entity_id = "sensor.master_bedroom_temperature"
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -276,6 +278,7 @@ async def test_adjust_house(hass: HomeAssistant) -> None:
             },
             "bed_time": "21:00:00",
             "wake_time": "05:00:00",
+            "control_central_thermostat": True,
         },
     )
     hass.states.async_set(
@@ -324,12 +327,10 @@ async def test_adjust_house(hass: HomeAssistant) -> None:
     )
 
 
-async def test_async_setup_entry(hass: HomeAssistant) -> None:
-    """Test async setup entry."""
-    central_thermostat_entity_id = "climate.living_room_thermostat"
-    cover_entity_id = "cover.master_bedroom_vent"
-    area_target_temperature_entity_id = "climate.master_bedroom_thermostat"
-    area_actual_temperature_entity_id = "sensor.master_bedroom_temperature"
+async def test_adjust_house_control_central_thermostat_false(
+    hass: HomeAssistant,
+) -> None:
+    """Test adjust house."""
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -346,6 +347,67 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
             },
             "bed_time": "21:00:00",
             "wake_time": "05:00:00",
+            "control_central_thermostat": False,
+        },
+    )
+    hass.states.async_set(
+        entity_id=central_thermostat_entity_id,
+        new_state="heat",
+        attributes={
+            "current_temperature": 68,
+        },
+    )
+    hass.states.async_set(
+        entity_id=cover_entity_id,
+        new_state="open",
+    )
+    hass.states.async_set(
+        entity_id=area_target_temperature_entity_id,
+        new_state=None,
+        attributes={
+            "temperature": 71,
+        },
+    )
+    hass.states.async_set(
+        entity_id=area_actual_temperature_entity_id,
+        new_state=70,
+    )
+    await hass.async_block_till_done()
+    hass.services = MagicMock()
+
+    adjust_house(hass, config_entry)
+
+    assert hass.services.call.call_count == 1
+    hass.services.call.assert_has_calls(
+        [
+            call(
+                Platform.COVER,
+                SERVICE_OPEN_COVER,
+                service_data={ATTR_ENTITY_ID: cover_entity_id},
+            )
+        ]
+    )
+
+
+async def test_async_setup_entry(hass: HomeAssistant) -> None:
+    """Test async setup entry."""
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "areas": {
+                "master_bedroom": {
+                    "covers": [cover_entity_id],
+                    "temperature": area_actual_temperature_entity_id,
+                    "bedroom": False,
+                },
+                "main_floor": {
+                    "climate": central_thermostat_entity_id,
+                    "bedroom": False,
+                },
+            },
+            "bed_time": "21:00:00",
+            "wake_time": "05:00:00",
+            "control_central_thermostat": True,
         },
         state=ConfigEntryState.LOADED,
     )
