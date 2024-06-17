@@ -166,7 +166,11 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
         for key, values in areas.items():
             area_thermostat = hass.states.get("climate." + key + "_thermostat")
             area_temperature_sensor = hass.states.get(values["temperature"])
-            if area_thermostat and area_temperature_sensor:
+            if (
+                area_thermostat
+                and "temperature" in area_thermostat.attributes
+                and area_temperature_sensor
+            ):
                 area_actual_temperature = int(float(area_temperature_sensor.state))
                 area_target_temperature = area_thermostat.attributes["temperature"]
                 is_bedroom = values["bedroom"]
