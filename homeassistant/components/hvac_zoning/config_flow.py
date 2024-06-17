@@ -13,6 +13,7 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.helpers.area_registry import AreaRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry, async_entries_for_area
 from homeassistant.helpers.selector import (
+    SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
@@ -148,6 +149,11 @@ def convert_bedroom_input_to_config_entry(config_entry, user_input):
     return {room: room in bedrooms for room in rooms}
 
 
+def convert_user_input_to_boolean(user_input):
+    """Convert user input to boolean."""
+    return {key: value.lower() == "true" for key, value in user_input.items()}
+
+
 class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for HVAC Zoning."""
 
@@ -220,13 +226,42 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                 "bed_time": user_input["bed_time"],
                 "wake_time": user_input["wake_time"],
             }
+            return await self.async_step_fifth()
+
+        return self.async_show_form(
+            step_id="fourth",
+            data_schema=await build_schema_for_areas(self),
+            errors=errors,
+        )
+
+    async def async_step_fifth(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle selecting whether to abstract away the central thermostat."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            user_input_boolean = convert_user_input_to_boolean(user_input)
+            self.init_info = {**self.init_info, **user_input_boolean}
             return self.async_create_entry(
                 title=DOMAIN,
                 data=self.init_info,
             )
 
         return self.async_show_form(
-            step_id="fourth",
-            data_schema=await build_schema_for_areas(self),
+            step_id="fifth",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "control_central_thermostat", default="True"
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[
+                                SelectOptionDict(value="True", label="Yes"),
+                                SelectOptionDict(value="False", label="No"),
+                            ],
+                        )
+                    ),
+                }
+            ),
             errors=errors,
         )

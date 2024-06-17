@@ -8,6 +8,7 @@ from homeassistant import data_entry_flow
 from homeassistant.components.hvac_zoning import config_flow
 from homeassistant.components.hvac_zoning.config_flow import (
     convert_bedroom_input_to_config_entry,
+    convert_user_input_to_boolean,
     filter_entities_to_device_class_and_map_to_entity_ids,
     filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict,
     get_all_rooms,
@@ -531,6 +532,27 @@ def test_convert_bedroom_input_to_config_entry() -> None:
     }
 
 
+@pytest.mark.parametrize(
+    ("user_input", "expected_output"),
+    [
+        ({"control_central_thermostat": "True"}, {"control_central_thermostat": True}),
+        (
+            {"control_central_thermostat": "False"},
+            {"control_central_thermostat": False},
+        ),
+        ({"control_central_thermostat": "true"}, {"control_central_thermostat": True}),
+        (
+            {"control_central_thermostat": "false"},
+            {"control_central_thermostat": False},
+        ),
+    ],
+)
+def test_convert_user_input_to_boolean(user_input, expected_output) -> None:
+    "Test convert user input to boolean."
+    actual_user_input = convert_user_input_to_boolean(user_input)
+    assert actual_user_input == expected_output
+
+
 async def test_step_user_without_user_input(hass: HomeAssistant) -> None:
     """Test step user without user input."""
     flow = config_flow.HVACZoningConfigFlow()
@@ -650,15 +672,15 @@ async def test_step_fourth_with_user_input(hass: HomeAssistant) -> None:
     """Test step fourth with user input."""
     flow = config_flow.HVACZoningConfigFlow()
     flow.hass = hass
-    user_input = user_input = {
+    user_input = {
         "bed_time": "21:00:00",
         "wake_time": "05:00:00",
         "bedrooms": ["master_bedroom"],
     }
     result = await flow.async_step_fourth(user_input)
 
-    assert result["title"] == DOMAIN
-    assert result["data"] == {
+    assert result["step_id"] == "fifth"
+    assert flow.init_info == {
         "areas": {
             "master_bedroom": {
                 "bedroom": True,
@@ -666,4 +688,31 @@ async def test_step_fourth_with_user_input(hass: HomeAssistant) -> None:
         },
         "bed_time": "21:00:00",
         "wake_time": "05:00:00",
+    }
+
+
+async def test_step_fifth_without_user_input(hass: HomeAssistant) -> None:
+    """Test step fifth without user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+
+    result = await flow.async_step_fifth()
+
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "fifth"
+    assert "control_central_thermostat" in result["data_schema"].schema
+
+
+async def test_step_fifth_with_user_input(hass: HomeAssistant) -> None:
+    """Test step fifth with user input."""
+    flow = config_flow.HVACZoningConfigFlow()
+    flow.hass = hass
+    user_input = {
+        "control_central_thermostat": "True",
+    }
+    result = await flow.async_step_fifth(user_input)
+
+    assert result["title"] == DOMAIN
+    assert result["data"] == {
+        "control_central_thermostat": True,
     }

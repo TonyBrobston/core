@@ -41,6 +41,12 @@
           "wake_time": "Wake Time"
         },
         "description": "Choose which rooms are **Bedrooms** and set what time to start and stop **Night Time Mode**.\n \n  The goal of this feature is to decrease vent noise while sleeping and to only climate control the **Bedrooms.** At night only **Bedroom** vents will remain open while all other room's vents will remain closed. In addition, the **Thermostat** will change from active to idle (and vice-versa) to meet the **Bedroom's** target temperature. If you do not select any **Bedrooms**, regular vent operation will occur all day and night."
+      },
+      "fifth": {
+        "data": {
+          "control_central_thermostat": "Abstract away the Central Thermostat?"
+        },
+        "description": "Do you want to abstract away the **Central Thermostat**?\n \n If you are using this system to control most of or all of your home, we suggest **Yes**; if you are only controlling one or a few **Areas**, we suggest **No**. At the end of this configuration flow we will create one **Virtual Thermostat** per **Area**. If you choose **Yes** you will only control the **Central Thermostat** to adjust the **HVAC Mode** (Heat, Cool, or Off) and this system will control the **Central Thermostat** target temperature based on all the area's target and actual temperatures. If you choose **No** you can use your **Central Thermostat** as normal and this system will only look at the **Central Thermostat** to check **HVAC Mode** because this is one of the inputs needed to determine whether an area has met its target temperature or not."
       }
     },
     "abort": {
