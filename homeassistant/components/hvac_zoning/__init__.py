@@ -213,7 +213,6 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up HVAC Zoning from a config entry."""
-    LOGGER.info("Fired async_setup_entry")
 
     hass.data.setdefault(DOMAIN, {})
 
@@ -249,3 +248,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
     )
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    LOGGER.info(f"hass: {hass}")
+    LOGGER.info(f"entry: {entry}")
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
