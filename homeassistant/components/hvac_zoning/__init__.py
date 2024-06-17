@@ -252,6 +252,4 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    LOGGER.info(f"hass: {hass}")
-    LOGGER.info(f"entry: {entry}")
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
