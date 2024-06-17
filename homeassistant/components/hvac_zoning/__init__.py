@@ -244,7 +244,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                 + "\n--------------------------------------------------------"
             )
 
-    config_entry.async_on_unload(
-        hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
-    )
+    callback = hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
+    LOGGER.info(f"callback: {callback}")
+    # config_entry.async_on_unload(
+    #     hass.bus._async_remove_listener(EVENT_STATE_CHANGED, callback)
+    # )
     return True
