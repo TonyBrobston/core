@@ -244,13 +244,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                 + "\n--------------------------------------------------------"
             )
 
-    hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
+    config_entry.async_on_unload(
+        hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
+    )
     return True
-
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unload_ok
