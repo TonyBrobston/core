@@ -119,7 +119,11 @@ def determine_change_in_temperature(target_temperature, hvac_mode, action):
 def determine_target_temperature(hass: HomeAssistant, area):
     """Determine thermostat temperature."""
     thermostat = hass.states.get("climate." + area + "_thermostat")
-    return thermostat.attributes["temperature"] if thermostat else None
+    return (
+        thermostat.attributes["temperature"]
+        if thermostat and "temperature" in thermostat.attributes
+        else None
+    )
 
 
 def determine_actual_temperature(hass: HomeAssistant, devices):
