@@ -228,21 +228,31 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             config_entry_data
         )
         areas = config_entry_data_with_only_valid_areas.get("areas", {})
-        # cover_entity_ids = get_all_cover_entity_ids(areas)
+        cover_entity_ids = get_all_cover_entity_ids(areas)
         # temperature_entity_ids = get_all_temperature_entity_ids(areas)
         thermostat_entity_ids = get_all_thermostat_entity_ids(config_entry_data)
         virtual_thermostat_entity_ids = [
             "climate." + area + "_thermostat" for area in areas
         ]
-        entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
-        if event_type == EVENT_STATE_CHANGED and entity_id in entity_ids:
-            adjust_house(hass, config_entry)
-            LOGGER.info(
-                f"\nentity_id: {data['entity_id']}"
-                + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
-                + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
-                + "\n--------------------------------------------------------"
-            )
+        thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
+        if event_type == EVENT_STATE_CHANGED:
+            if entity_id in thermostat_entity_ids + cover_entity_ids:
+                LOGGER.info(
+                    f"\nentity_id: {data['entity_id']}"
+                    + (
+                        f"\nold_state: {data['old_state']}"
+                        if "old_state" in data
+                        else ""
+                    )
+                    + (
+                        f"\nnew_state: {data['new_state']}"
+                        if "new_state" in data
+                        else ""
+                    )
+                    + "\n--------------------------------------------------------"
+                )
+            if entity_id in thermostat_entity_ids:
+                adjust_house(hass, config_entry)
 
     config_entry.async_on_unload(
         hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
