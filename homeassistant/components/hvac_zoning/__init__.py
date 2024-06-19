@@ -177,6 +177,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
                     is_night_time,
                     is_bedroom,
                 )
+                LOGGER.info(f"service_to_call: {service_to_call}")
                 for cover in values["covers"]:
                     hass.services.call(
                         Platform.COVER,
