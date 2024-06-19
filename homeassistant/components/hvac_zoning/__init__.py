@@ -66,13 +66,6 @@ def determine_is_night_time(bed_time, wake_time):
     bed_time = datetime.time.fromisoformat(bed_time)
     wake_time = datetime.time.fromisoformat(wake_time)
 
-    LOGGER.info(
-        f"\nnow: {now}"
-        f"\nbed_time: {bed_time}"
-        f"\nwake_time: {wake_time}"
-        "\n--------------------------------------------------------"
-    )
-
     return (
         bed_time > wake_time
         and (now.time() > bed_time or now.time() < wake_time)
