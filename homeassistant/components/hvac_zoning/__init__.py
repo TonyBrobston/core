@@ -168,13 +168,6 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
                 area_actual_temperature = int(float(area_temperature_sensor.state))
                 area_target_temperature = area_thermostat.attributes["temperature"]
                 is_bedroom = values["bedroom"]
-                LOGGER.info(
-                    f"\narea.id: {key}"
-                    f"\nis_night_time_mode: {is_night_time_mode}"
-                    f"\nis_night_time: {is_night_time}"
-                    f"\nservice_to_call: {SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER}"
-                    "\n--------------------------------------------------------"
-                )
                 service_to_call = determine_cover_service_to_call(
                     area_target_temperature,
                     area_actual_temperature,
