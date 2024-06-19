@@ -237,10 +237,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         ]
         thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
         if event_type == EVENT_STATE_CHANGED:
-            if entity_id in thermostat_entity_ids or (
-                entity_id in cover_entity_ids
-                and data["old_state"].state == STATE_UNAVAILABLE
-            ):
+            if entity_id in thermostat_entity_ids + cover_entity_ids:
                 LOGGER.info(
                     f"\nentity_id: {data['entity_id']}"
                     + (
@@ -255,6 +252,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                     )
                     + "\n--------------------------------------------------------"
                 )
+            if entity_id in thermostat_entity_ids or (
+                entity_id in cover_entity_ids
+                and data["old_state"].state == STATE_UNAVAILABLE
+            ):
+                LOGGER.info(f"data['old_state'].state: {data["old_state"].state}")
                 adjust_house(hass, config_entry)
 
     config_entry.async_on_unload(

@@ -28,7 +28,6 @@ from homeassistant.const import (
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     STATE_CLOSED,
-    STATE_OPEN,
     STATE_UNAVAILABLE,
     Platform,
 )
@@ -419,7 +418,13 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
 
     hass.bus.async_fire(
         EVENT_STATE_CHANGED,
-        {ATTR_ENTITY_ID: area_target_temperature_entity_id},
+        {
+            ATTR_ENTITY_ID: area_target_temperature_entity_id,
+            "old_state": core.State(
+                area_target_temperature_entity_id,
+                71,
+            ),
+        },
     )
 
     assert hass.services.call.call_count == 2
@@ -479,20 +484,14 @@ async def test_async_setup_entry_damper_wake(hass: HomeAssistant) -> None:
 
     await async_setup_entry(hass, config_entry)
 
-    old_state = core.State(
-        cover_entity_id,
-        STATE_UNAVAILABLE,
-    )
-    new_state = core.State(
-        cover_entity_id,
-        STATE_CLOSED,
-    )
     hass.bus.async_fire(
         EVENT_STATE_CHANGED,
         {
             ATTR_ENTITY_ID: cover_entity_id,
-            "old_state": old_state,
-            "new_state": new_state,
+            "old_state": core.State(
+                cover_entity_id,
+                STATE_UNAVAILABLE,
+            ),
         },
     )
 
@@ -545,20 +544,14 @@ async def test_async_setup_entry_damper_open(hass: HomeAssistant) -> None:
 
     await async_setup_entry(hass, config_entry)
 
-    old_state = core.State(
-        cover_entity_id,
-        STATE_CLOSED,
-    )
-    new_state = core.State(
-        cover_entity_id,
-        STATE_OPEN,
-    )
     hass.bus.async_fire(
         EVENT_STATE_CHANGED,
         {
             ATTR_ENTITY_ID: cover_entity_id,
-            "old_state": old_state,
-            "new_state": new_state,
+            "old_state": core.State(
+                cover_entity_id,
+                STATE_CLOSED,
+            ),
         },
     )
 
