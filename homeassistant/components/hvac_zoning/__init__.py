@@ -9,9 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
-    EVENT_COMPONENT_LOADED,
     EVENT_STATE_CHANGED,
-    EVENT_STATE_REPORTED,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     STATE_UNAVAILABLE,
@@ -200,10 +198,10 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             )
 
 
-def log_event(event_type, data):
+def log_event(boolean, data):
     """Log event."""
     LOGGER.info(
-        f"\nevent_type: {event_type}"
+        f"\nboolean: {boolean}"
         f"\nentity_id: {data['entity_id']}"
         + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
         + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
@@ -234,12 +232,13 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             "climate." + area + "_thermostat" for area in areas
         ]
         thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
+        if entity_id in cover_entity_ids:
+            log_event(True, data)
         if (
             entity_id in cover_entity_ids
             and data["old_state"].state == STATE_UNAVAILABLE
         ):
-            event_type = event_dict["event_type"]
-            log_event(event_type, data)
+            log_event(False, data)
         if entity_id in thermostat_entity_ids or (
             entity_id in cover_entity_ids
             and data["old_state"].state == STATE_UNAVAILABLE
@@ -248,19 +247,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     config_entry.async_on_unload(
         hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event_state_changed)
-    )
-
-    def handle_event_log(event):
-        event_dict = event.as_dict()
-        event_type = event_dict["event_type"]
-        data = event_dict["data"]
-        log_event(event_type, data)
-
-    config_entry.async_on_unload(
-        hass.bus.async_listen(EVENT_COMPONENT_LOADED, handle_event_log)
-    )
-    config_entry.async_on_unload(
-        hass.bus.async_listen(EVENT_STATE_REPORTED, handle_event_log)
     )
 
     return True
