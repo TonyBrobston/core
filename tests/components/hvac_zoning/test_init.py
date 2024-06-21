@@ -28,6 +28,7 @@ from homeassistant.const import (
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     STATE_CLOSED,
+    STATE_UNAVAILABLE,
     Platform,
 )
 from homeassistant.core import HomeAssistant
@@ -446,64 +447,64 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
     )
 
 
-# async def test_async_setup_entry_damper_wake(hass: HomeAssistant) -> None:
-#     """Test async setup entry."""
-#     config_entry = MockConfigEntry(
-#         domain=DOMAIN,
-#         data={
-#             **data,
-#             "control_central_thermostat": False,
-#         },
-#         state=ConfigEntryState.LOADED,
-#     )
-#     hass.states.async_set(
-#         entity_id=central_thermostat_entity_id,
-#         new_state="heat",
-#         attributes={
-#             "current_temperature": 68,
-#         },
-#     )
-#     hass.states.async_set(
-#         entity_id=cover_entity_id,
-#         new_state="open",
-#     )
-#     hass.states.async_set(
-#         entity_id=area_target_temperature_entity_id,
-#         new_state=None,
-#         attributes={
-#             "temperature": 70,
-#         },
-#     )
-#     hass.states.async_set(
-#         entity_id=area_actual_temperature_entity_id,
-#         new_state=69,
-#     )
-#     await hass.async_block_till_done()
-#     hass.services = MagicMock()
+async def test_async_setup_entry_damper_wake(hass: HomeAssistant) -> None:
+    """Test async setup entry."""
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            **data,
+            "control_central_thermostat": False,
+        },
+        state=ConfigEntryState.LOADED,
+    )
+    hass.states.async_set(
+        entity_id=central_thermostat_entity_id,
+        new_state="heat",
+        attributes={
+            "current_temperature": 68,
+        },
+    )
+    hass.states.async_set(
+        entity_id=cover_entity_id,
+        new_state="open",
+    )
+    hass.states.async_set(
+        entity_id=area_target_temperature_entity_id,
+        new_state=None,
+        attributes={
+            "temperature": 70,
+        },
+    )
+    hass.states.async_set(
+        entity_id=area_actual_temperature_entity_id,
+        new_state=69,
+    )
+    await hass.async_block_till_done()
+    hass.services = MagicMock()
 
-#     await async_setup_entry(hass, config_entry)
+    await async_setup_entry(hass, config_entry)
 
-#     hass.bus.async_fire(
-#         EVENT_STATE_CHANGED,
-#         {
-#             ATTR_ENTITY_ID: cover_entity_id,
-#             "old_state": core.State(
-#                 cover_entity_id,
-#                 STATE_UNAVAILABLE,
-#             ),
-#         },
-#     )
+    hass.bus.async_fire(
+        EVENT_STATE_CHANGED,
+        {
+            ATTR_ENTITY_ID: cover_entity_id,
+            "old_state": core.State(
+                cover_entity_id,
+                STATE_UNAVAILABLE,
+            ),
+        },
+    )
 
-#     assert hass.services.call.call_count == 1
-#     hass.services.call.assert_has_calls(
-#         [
-#             call(
-#                 Platform.COVER,
-#                 SERVICE_OPEN_COVER,
-#                 service_data={ATTR_ENTITY_ID: cover_entity_id},
-#             ),
-#         ]
-#     )
+    assert hass.services.call.call_count == 1
+    hass.services.call.assert_has_calls(
+        [
+            call(
+                Platform.COVER,
+                SERVICE_OPEN_COVER,
+                service_data={ATTR_ENTITY_ID: cover_entity_id},
+            ),
+        ]
+    )
 
 
 async def test_async_setup_entry_damper_open(hass: HomeAssistant) -> None:
