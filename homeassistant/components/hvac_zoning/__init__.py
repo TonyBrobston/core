@@ -9,7 +9,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
+    EVENT_COMPONENT_LOADED,
     EVENT_STATE_CHANGED,
+    EVENT_STATE_REPORTED,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     STATE_UNAVAILABLE,
@@ -242,6 +244,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     config_entry.async_on_unload(
         hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event_state_changed)
+    )
+
+    def handle_event_log(event):
+        event_dict = event.as_dict()
+        event_type = event_dict["event_type"]
+        data = event_dict["data"]
+        log_event(event_type, data)
+
+    config_entry.async_on_unload(
+        hass.bus.async_listen(EVENT_COMPONENT_LOADED, handle_event_log)
+    )
+    config_entry.async_on_unload(
+        hass.bus.async_listen(EVENT_STATE_REPORTED, handle_event_log)
     )
 
     return True
