@@ -233,12 +233,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         ]
         thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
         if entity_id in cover_entity_ids:
-            log_event(True, data)
+            log_event(False, data)
         if (
             entity_id in cover_entity_ids
             and data["old_state"].state == STATE_UNAVAILABLE
         ):
-            log_event(False, data)
+            log_event(True, data)
         if entity_id in thermostat_entity_ids or (
             entity_id in cover_entity_ids
             and data["old_state"].state == STATE_UNAVAILABLE
