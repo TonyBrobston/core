@@ -9,7 +9,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_TEMPERATURE,
+    EVENT_COMPONENT_LOADED,
     EVENT_STATE_CHANGED,
+    EVENT_STATE_REPORTED,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     Platform,
@@ -203,6 +205,17 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             )
 
 
+def log_event(data):
+    """Log event."""
+    LOGGER.info(
+        f"\nevent_type: {data['event_type']}"
+        f"\nentity_id: {data['entity_id']}"
+        + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
+        + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
+        + "\n--------------------------------------------------------"
+    )
+
+
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up HVAC Zoning from a config entry."""
 
@@ -210,9 +223,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
-    def handle_event(event):
+    def handle_event_state_changed(event):
         event_dict = event.as_dict()
-        event_type = event_dict["event_type"]
         data = event_dict["data"]
         entity_id = data["entity_id"]
         config_entry_data = config_entry.as_dict()["data"]
@@ -227,27 +239,25 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             "climate." + area + "_thermostat" for area in areas
         ]
         thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
-        if event_type == EVENT_STATE_CHANGED:
-            if entity_id in cover_entity_ids:
-                LOGGER.info(
-                    f"\nentity_id: {data['entity_id']}"
-                    + (
-                        f"\nold_state: {data['old_state']}"
-                        if "old_state" in data
-                        else ""
-                    )
-                    + (
-                        f"\nnew_state: {data['new_state']}"
-                        if "new_state" in data
-                        else ""
-                    )
-                    + "\n--------------------------------------------------------"
-                )
-            if entity_id in thermostat_entity_ids:
-                adjust_house(hass, config_entry)
+        if entity_id in cover_entity_ids:
+            log_event(data)
+        if entity_id in thermostat_entity_ids:
+            adjust_house(hass, config_entry)
 
     config_entry.async_on_unload(
-        hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event)
+        hass.bus.async_listen(EVENT_STATE_CHANGED, handle_event_state_changed)
+    )
+
+    def handle_event_log(event):
+        event_dict = event.as_dict()
+        data = event_dict["data"]
+        log_event(data)
+
+    config_entry.async_on_unload(
+        hass.bus.async_listen(EVENT_COMPONENT_LOADED, handle_event_log)
+    )
+    config_entry.async_on_unload(
+        hass.bus.async_listen(EVENT_STATE_REPORTED, handle_event_log)
     )
     return True
 
