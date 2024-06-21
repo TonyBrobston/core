@@ -234,12 +234,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             "climate." + area + "_thermostat" for area in areas
         ]
         thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
-        if entity_id in thermostat_entity_ids or (
+        if (
             entity_id in cover_entity_ids
             and data["old_state"].state == STATE_UNAVAILABLE
         ):
             event_type = event_dict["event_type"]
             log_event(event_type, data)
+        if entity_id in thermostat_entity_ids or (
+            entity_id in cover_entity_ids
+            and data["old_state"].state == STATE_UNAVAILABLE
+        ):
             adjust_house(hass, config_entry)
 
     config_entry.async_on_unload(
