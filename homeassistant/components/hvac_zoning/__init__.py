@@ -205,10 +205,10 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             )
 
 
-def log_event(data):
+def log_event(event_type, data):
     """Log event."""
     LOGGER.info(
-        f"\nevent_type: {data['event_type']}"
+        f"\nevent_type: {event_type}"
         f"\nentity_id: {data['entity_id']}"
         + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
         + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
@@ -240,7 +240,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         ]
         thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
         if entity_id in cover_entity_ids:
-            log_event(data)
+            event_type = event_dict["event_type"]
+            log_event(event_type, data)
         if entity_id in thermostat_entity_ids:
             adjust_house(hass, config_entry)
 
@@ -250,8 +251,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     def handle_event_log(event):
         event_dict = event.as_dict()
+        event_type = event_dict["event_type"]
         data = event_dict["data"]
-        log_event(data)
+        log_event(event_type, data)
 
     config_entry.async_on_unload(
         hass.bus.async_listen(EVENT_COMPONENT_LOADED, handle_event_log)
