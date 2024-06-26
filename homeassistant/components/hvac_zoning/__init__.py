@@ -12,7 +12,6 @@ from homeassistant.const import (
     EVENT_STATE_CHANGED,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
-    STATE_UNAVAILABLE,
     Platform,
 )
 from homeassistant.core import HomeAssistant
@@ -27,6 +26,13 @@ PLATFORMS: list[Platform] = [Platform.CLIMATE]
 def get_all_cover_entity_ids(areas):
     """Get all cover entity ids."""
     return [cover for area in areas.values() for cover in area.get("covers", [])]
+
+
+def get_all_connectivity_entity_ids(areas):
+    """Get all connectivity entity ids."""
+    return [
+        cover for area in areas.values() for cover in area.get("connectivities", [])
+    ]
 
 
 def get_all_temperature_entity_ids(areas):
@@ -198,10 +204,9 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             )
 
 
-def log_event(boolean, data):
+def log_event(data):
     """Log event."""
     LOGGER.info(
-        f"\nboolean: {boolean}"
         f"\nentity_id: {data['entity_id']}"
         + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
         + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
@@ -225,24 +230,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             config_entry_data
         )
         areas = config_entry_data_with_only_valid_areas.get("areas", {})
-        cover_entity_ids = get_all_cover_entity_ids(areas)
+        # cover_entity_ids = get_all_cover_entity_ids(areas)
+        connectivity_entity_ids = get_all_connectivity_entity_ids(areas)
         # temperature_entity_ids = get_all_temperature_entity_ids(areas)
         thermostat_entity_ids = get_all_thermostat_entity_ids(config_entry_data)
         virtual_thermostat_entity_ids = [
             "climate." + area + "_thermostat" for area in areas
         ]
         thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
-        if entity_id in cover_entity_ids:
-            log_event(False, data)
-        if (
-            entity_id in cover_entity_ids
-            and data["old_state"].state == STATE_UNAVAILABLE
-        ):
-            log_event(True, data)
-        if entity_id in thermostat_entity_ids or (
-            entity_id in cover_entity_ids
-            and data["old_state"].state == STATE_UNAVAILABLE
-        ):
+        if entity_id in thermostat_entity_ids + connectivity_entity_ids:
+            log_event(data)
             adjust_house(hass, config_entry)
 
     config_entry.async_on_unload(
