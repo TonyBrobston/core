@@ -12,6 +12,8 @@ from homeassistant.const import (
     EVENT_STATE_CHANGED,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
+    STATE_OFF,
+    STATE_ON,
     Platform,
 )
 from homeassistant.core import HomeAssistant
@@ -244,7 +246,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             "climate." + area + "_thermostat" for area in areas
         ]
         thermostat_entity_ids = thermostat_entity_ids + virtual_thermostat_entity_ids
-        if entity_id in thermostat_entity_ids + connectivity_entity_ids:
+        if entity_id in thermostat_entity_ids or (
+            entity_id in connectivity_entity_ids
+            and data["old_state"].state == STATE_OFF
+            and data["new_state"].state == STATE_ON
+        ):
             log_event(data)
             adjust_house(hass, config_entry)
 
