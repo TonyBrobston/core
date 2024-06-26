@@ -181,6 +181,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle selecting binary sensors."""
         errors: dict[str, str] = {}
         if user_input is not None:
+            LOGGER.info(f"init_info: {self.init_info}")
             LOGGER.info(f"user_input: {user_input}")
             self.init_info = merge_user_input(
                 self.init_info, user_input, "connectivities"
