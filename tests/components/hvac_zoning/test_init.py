@@ -28,7 +28,8 @@ from homeassistant.const import (
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
     STATE_CLOSED,
-    STATE_UNAVAILABLE,
+    STATE_OFF,
+    STATE_ON,
     Platform,
 )
 from homeassistant.core import HomeAssistant
@@ -259,12 +260,14 @@ def test_filter_to_bedrooms(areas, expected_result) -> None:
 
 central_thermostat_entity_id = "climate.living_room_thermostat"
 cover_entity_id = "cover.master_bedroom_vent"
+cover_connectivity_entity_id = "binary_sensor.status"
 area_target_temperature_entity_id = "climate.master_bedroom_thermostat"
 area_actual_temperature_entity_id = "sensor.master_bedroom_temperature"
 data = {
     "areas": {
         "master_bedroom": {
             "covers": [cover_entity_id],
+            "connectivities": [cover_connectivity_entity_id],
             "temperature": area_actual_temperature_entity_id,
             "bedroom": False,
         },
@@ -426,6 +429,7 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
             ),
         },
     )
+    await hass.async_block_till_done()
 
     assert hass.services.call.call_count == 2
     hass.services.call.assert_has_calls(
@@ -465,10 +469,6 @@ async def test_async_setup_entry_damper_wake(hass: HomeAssistant) -> None:
         },
     )
     hass.states.async_set(
-        entity_id=cover_entity_id,
-        new_state="open",
-    )
-    hass.states.async_set(
         entity_id=area_target_temperature_entity_id,
         new_state=None,
         attributes={
@@ -487,13 +487,18 @@ async def test_async_setup_entry_damper_wake(hass: HomeAssistant) -> None:
     hass.bus.async_fire(
         EVENT_STATE_CHANGED,
         {
-            ATTR_ENTITY_ID: cover_entity_id,
+            ATTR_ENTITY_ID: cover_connectivity_entity_id,
             "old_state": core.State(
                 cover_entity_id,
-                STATE_UNAVAILABLE,
+                STATE_OFF,
+            ),
+            "new_state": core.State(
+                cover_entity_id,
+                STATE_ON,
             ),
         },
     )
+    await hass.async_block_till_done()
 
     assert hass.services.call.call_count == 1
     hass.services.call.assert_has_calls(
@@ -554,5 +559,6 @@ async def test_async_setup_entry_damper_open(hass: HomeAssistant) -> None:
             ),
         },
     )
+    await hass.async_block_till_done()
 
     assert hass.services.call.call_count == 0
