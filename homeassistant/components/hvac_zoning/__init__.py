@@ -136,7 +136,6 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
     """Adjust house."""
     config_entry_data = config_entry.as_dict()["data"]
     central_thermostat_entity_ids = get_all_thermostat_entity_ids(config_entry_data)
-    LOGGER.info(f"central_thermostat_entity_ids: {central_thermostat_entity_ids}")
     central_thermostat = hass.states.get(central_thermostat_entity_ids[0])
     if central_thermostat and "current_temperature" in central_thermostat.attributes:
         central_thermostat_actual_temperature = central_thermostat.attributes[
@@ -184,7 +183,13 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
                     is_night_time,
                     is_bedroom,
                 )
-                for cover in values["covers"]:
+                covers = values["covers"]
+                LOGGER.info(
+                    f"\nservice_to_call: {service_to_call}"
+                    f"\ncovers: {covers}"
+                    "\n--------------------------------------------------------"
+                )
+                for cover in covers:
                     hass.services.call(
                         Platform.COVER,
                         service_to_call,

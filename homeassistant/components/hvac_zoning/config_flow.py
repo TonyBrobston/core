@@ -20,7 +20,7 @@ from homeassistant.helpers.selector import (
     TimeSelector,
 )
 
-from .const import DOMAIN, LOGGER
+from .const import DOMAIN
 
 
 async def get_areas(self):
@@ -188,16 +188,12 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle selecting binary sensors."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            LOGGER.info(f"init_info: {self.init_info}")
-            LOGGER.info(f"user_input: {user_input}")
             connectivities_config_entry = convert_connectivities_input_to_config_entry(
                 self.init_info, user_input
             )
-            LOGGER.info(f"connectivities_config_entry: {connectivities_config_entry}")
             self.init_info = merge_user_input(
                 self.init_info, connectivities_config_entry, "connectivities"
             )
-            LOGGER.info(f"init_info: {self.init_info}")
             return await self.async_step_third()
 
         return self.async_show_form(
@@ -273,7 +269,6 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             user_input_boolean = convert_user_input_to_boolean(user_input)
             self.init_info = {**self.init_info, **user_input_boolean}
-            LOGGER.info(f"init_info: {self.init_info}")
             return self.async_create_entry(
                 title=DOMAIN,
                 data=self.init_info,
