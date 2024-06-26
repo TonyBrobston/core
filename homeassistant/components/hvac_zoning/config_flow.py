@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 import voluptuous as vol
 
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.cover import CoverDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
@@ -20,9 +20,7 @@ from homeassistant.helpers.selector import (
     TimeSelector,
 )
 
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
+from .const import DOMAIN, LOGGER
 
 
 async def get_areas(self):
@@ -180,16 +178,19 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_second(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle selecting temperature sensors."""
+        """Handle selecting binary sensors."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.init_info = merge_user_input(self.init_info, user_input, "temperature")
+            LOGGER.info(f"user_input: {user_input}")
+            self.init_info = merge_user_input(
+                self.init_info, user_input, "connectivities"
+            )
             return await self.async_step_third()
 
         return self.async_show_form(
             step_id="second",
             data_schema=await build_schema_for_device_class(
-                self, SensorDeviceClass.TEMPERATURE, False
+                self, BinarySensorDeviceClass.CONNECTIVITY, False
             ),
             errors=errors,
         )
@@ -197,15 +198,17 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_third(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle selecting the thermostat."""
+        """Handle selecting temperature sensors."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            self.init_info = merge_user_input(self.init_info, user_input, "climate")
+            self.init_info = merge_user_input(self.init_info, user_input, "temperature")
             return await self.async_step_fourth()
 
         return self.async_show_form(
             step_id="third",
-            data_schema=await build_schema_for_device_class(self, "climate", False),
+            data_schema=await build_schema_for_device_class(
+                self, SensorDeviceClass.TEMPERATURE, False
+            ),
             errors=errors,
         )
 
@@ -213,6 +216,21 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle selecting the thermostat."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            self.init_info = merge_user_input(self.init_info, user_input, "climate")
+            return await self.async_step_fifth()
+
+        return self.async_show_form(
+            step_id="fourth",
+            data_schema=await build_schema_for_device_class(self, "climate", False),
+            errors=errors,
+        )
+
+    async def async_step_fifth(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle selecting areas."""
         errors: dict[str, str] = {}
         if user_input is not None:
             bedrooms_config_entry = convert_bedroom_input_to_config_entry(
@@ -226,15 +244,15 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
                 "bed_time": user_input["bed_time"],
                 "wake_time": user_input["wake_time"],
             }
-            return await self.async_step_fifth()
+            return await self.async_step_sixth()
 
         return self.async_show_form(
-            step_id="fourth",
+            step_id="fifth",
             data_schema=await build_schema_for_areas(self),
             errors=errors,
         )
 
-    async def async_step_fifth(
+    async def async_step_sixth(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle selecting whether to abstract away the central thermostat."""
@@ -242,13 +260,14 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             user_input_boolean = convert_user_input_to_boolean(user_input)
             self.init_info = {**self.init_info, **user_input_boolean}
+            LOGGER.info(f"init_info: {self.init_info}")
             return self.async_create_entry(
                 title=DOMAIN,
                 data=self.init_info,
             )
 
         return self.async_show_form(
-            step_id="fifth",
+            step_id="sixth",
             data_schema=vol.Schema(
                 {
                     vol.Required(

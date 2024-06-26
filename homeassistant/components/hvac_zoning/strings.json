@@ -21,7 +21,7 @@
           "office": "Office",
           "upstairs_bathroom": "Upstairs Bathroom"
         },
-        "description": "Choose which **Temperature Sensors** you would like to use for these **Areas**.\n \n If you do **NOT** see your Temperature Sensor listed here, be sure the **Temperature Sensor *Entities* (rather than the *Device*) are explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
+        "description": "Choose which **Connectivity Sensors** you would like to use for these **Areas**.\n \n If you do **NOT** see your Connectivity Sensors listed here, be sure the **Connectivity Sensor *Entities* (rather than the *Device*) are explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**. \n \n **Connectivity Sensors** are used to determine if a **Battery Powered Smart Vent** is awake and ready for commands."
       },
       "third": {
         "data": {
@@ -32,9 +32,20 @@
           "office": "Office",
           "upstairs_bathroom": "Upstairs Bathroom"
         },
-        "description": "Choose your **Thermostat**.\n \n If you do **NOT** see your Thermostat listed here, be sure the **Thermostat *Entity* (rather than the *Device*) is explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
+        "description": "Choose which **Temperature Sensors** you would like to use for these **Areas**.\n \n If you do **NOT** see your Temperature Sensor listed here, be sure the **Temperature Sensor *Entities* (rather than the *Device*) are explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
       },
       "fourth": {
+        "data": {
+          "basement": "Basement",
+          "guest_bedroom": "Guest Bedroom",
+          "main_floor": "Main Floor",
+          "master_bedroom": "Master Bedroom",
+          "office": "Office",
+          "upstairs_bathroom": "Upstairs Bathroom"
+        },
+        "description": "Choose your **Thermostat**.\n \n If you do **NOT** see your Thermostat listed here, be sure the **Thermostat *Entity* (rather than the *Device*) is explicity assigned to an Area.** \n Confirm you see them here: **Settings -> Areas & zones -> Area -> Entities**"
+      },
+      "fifth": {
         "data": {
           "bedrooms": "Bedrooms",
           "bed_time": "Bed Time",
@@ -42,7 +53,7 @@
         },
         "description": "Choose which rooms are **Bedrooms** and set what time to start and stop **Night Time Mode**.\n \n  The goal of this feature is to decrease vent noise while sleeping and to only climate control the **Bedrooms.** At night only **Bedroom** vents will remain open while all other room's vents will remain closed. In addition, the **Thermostat** will change from active to idle (and vice-versa) to meet the **Bedroom's** target temperature. If you do not select any **Bedrooms**, regular vent operation will occur all day and night."
       },
-      "fifth": {
+      "sixth": {
         "data": {
           "control_central_thermostat": "Abstract away the Central Thermostat?"
         },
