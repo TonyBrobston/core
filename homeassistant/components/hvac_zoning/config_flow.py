@@ -132,11 +132,18 @@ def merge_user_input(config_entry, user_input, key):
         "areas": {
             room: {
                 **config_entry.get("areas", {}).get(room, {}),
-                **({key: user_input.get(room)} if room in user_input else {}),
+                key: user_input.get(room, []),
             }
             for room in rooms
         }
     }
+
+
+def convert_connectivities_input_to_config_entry(config_entry, user_input):
+    """Convert connectivies input to config entry."""
+    rooms = get_all_rooms(config_entry.get("areas", {}), user_input)
+    # return {area: user_input.get(area, []) for area in config_entry["areas"]}
+    return {room: user_input.get(room, []) for room in rooms}
 
 
 def convert_bedroom_input_to_config_entry(config_entry, user_input):
@@ -183,9 +190,14 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             LOGGER.info(f"init_info: {self.init_info}")
             LOGGER.info(f"user_input: {user_input}")
-            self.init_info = merge_user_input(
-                self.init_info, user_input, "connectivities"
+            connectivities_config_entry = convert_connectivities_input_to_config_entry(
+                self.init_info, user_input
             )
+            LOGGER.info(f"connectivities_config_entry: {connectivities_config_entry}")
+            self.init_info = merge_user_input(
+                self.init_info, connectivities_config_entry, "connectivities"
+            )
+            LOGGER.info(f"init_info: {self.init_info}")
             return await self.async_step_third()
 
         return self.async_show_form(

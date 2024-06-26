@@ -8,6 +8,7 @@ from homeassistant import data_entry_flow
 from homeassistant.components.hvac_zoning import config_flow
 from homeassistant.components.hvac_zoning.config_flow import (
     convert_bedroom_input_to_config_entry,
+    convert_connectivities_input_to_config_entry,
     convert_user_input_to_boolean,
     filter_entities_to_device_class_and_map_to_entity_ids,
     filter_entities_to_device_class_and_map_to_value_and_label_array_of_dict,
@@ -505,6 +506,46 @@ def test_get_all_rooms(user_input1, user_input2, expected_output) -> None:
 def test_merge_user_input(config_entry, user_input, key, expected_output) -> None:
     """Test merge user inputs."""
     assert merge_user_input(config_entry, user_input, key) == expected_output
+
+
+@pytest.mark.parametrize(
+    ("config_entry", "user_input", "expected_output"),
+    [
+        (
+            {
+                "areas": {
+                    "office": {"covers": ["cover.vent_3"]},
+                    "upstairs_bathroom": {"covers": ["cover.vent"]},
+                }
+            },
+            {"upstairs_bathroom": ["binary_sensor.status"]},
+            {
+                "office": [],
+                "upstairs_bathroom": ["binary_sensor.status"],
+            },
+        ),
+        (
+            {
+                "areas": {
+                    "office": {"covers": ["cover.vent_3"]},
+                }
+            },
+            {"upstairs_bathroom": ["binary_sensor.status"]},
+            {
+                "office": [],
+                "upstairs_bathroom": ["binary_sensor.status"],
+            },
+        ),
+    ],
+)
+def test_convert_connectivities_input_to_config_entry(
+    config_entry, user_input, expected_output
+) -> None:
+    """Test convert array to config entry."""
+    assert (
+        convert_connectivities_input_to_config_entry(config_entry, user_input)
+        == expected_output
+    )
 
 
 def test_convert_bedroom_input_to_config_entry() -> None:
