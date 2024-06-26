@@ -190,7 +190,7 @@ class HVACZoningConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="second",
             data_schema=await build_schema_for_device_class(
-                self, BinarySensorDeviceClass.CONNECTIVITY, False
+                self, BinarySensorDeviceClass.CONNECTIVITY, True
             ),
             errors=errors,
         )
