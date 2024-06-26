@@ -135,8 +135,9 @@ def determine_actual_temperature(hass: HomeAssistant, devices):
 def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
     """Adjust house."""
     config_entry_data = config_entry.as_dict()["data"]
-    central_thermostat_entity_id = get_all_thermostat_entity_ids(config_entry_data)[0]
-    central_thermostat = hass.states.get(central_thermostat_entity_id)
+    central_thermostat_entity_ids = get_all_thermostat_entity_ids(config_entry_data)
+    LOGGER.info(f"central_thermostat_entity_ids: {central_thermostat_entity_ids}")
+    central_thermostat = hass.states.get(central_thermostat_entity_ids[0])
     if central_thermostat and "current_temperature" in central_thermostat.attributes:
         central_thermostat_actual_temperature = central_thermostat.attributes[
             "current_temperature"
@@ -194,7 +195,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
                 Platform.CLIMATE,
                 SERVICE_SET_TEMPERATURE,
                 service_data={
-                    ATTR_ENTITY_ID: central_thermostat_entity_id,
+                    ATTR_ENTITY_ID: central_thermostat_entity_ids,
                     ATTR_TEMPERATURE: determine_change_in_temperature(
                         central_thermostat_actual_temperature,
                         central_hvac_mode,
