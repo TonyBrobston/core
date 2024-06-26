@@ -132,7 +132,7 @@ def merge_user_input(config_entry, user_input, key):
         "areas": {
             room: {
                 **config_entry.get("areas", {}).get(room, {}),
-                key: user_input.get(room, []),
+                **({key: user_input.get(room)} if room in user_input else {}),
             }
             for room in rooms
         }
