@@ -103,6 +103,9 @@ def determine_cover_service_to_call(
     if is_night_time_mode and is_night_time:
         return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
     LOGGER.info(f"thermostat_action: {thermostat_action}")
+    LOGGER.info(f"control_central_thermostat: {control_central_thermostat}")
+    evaluate = thermostat_action == IDLE and not control_central_thermostat
+    LOGGER.info(f"evaluate: {evaluate}")
     action = (
         ACTIVE
         if thermostat_action == IDLE and not control_central_thermostat
