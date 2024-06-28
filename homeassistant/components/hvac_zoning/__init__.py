@@ -108,7 +108,7 @@ def determine_cover_service_to_call(
     LOGGER.info(f"evaluate: {evaluate}")
     action = (
         ACTIVE
-        if thermostat_action == IDLE and control_central_thermostat is not False
+        if thermostat_action == IDLE and control_central_thermostat is True
         else determine_action(target_temperature, actual_temperature, hvac_mode)
     )
     LOGGER.info(f"action: {action}")
