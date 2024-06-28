@@ -54,11 +54,8 @@ def determine_action(target_temperature: int, actual_temperature: int, hvac_mode
         and target_temperature is not None
         and actual_temperature is not None
     ):
-        LOGGER.info(f"hvac_mode: {hvac_mode}")
         modified_actual_temperature = int(float(actual_temperature))
         modified_target_temperature = int(float(target_temperature))
-        LOGGER.info(f"modified_actual_temperature: {modified_actual_temperature}")
-        LOGGER.info(f"modified_target_temperature: {modified_target_temperature}")
         match hvac_mode:
             case HVACMode.HEAT:
                 if modified_actual_temperature >= modified_target_temperature:
@@ -102,16 +99,11 @@ def determine_cover_service_to_call(
     """Determine cover service."""
     if is_night_time_mode and is_night_time:
         return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
-    LOGGER.info(f"thermostat_action: {thermostat_action}")
-    LOGGER.info(f"control_central_thermostat: {control_central_thermostat}")
-    evaluate = thermostat_action == IDLE and not control_central_thermostat
-    LOGGER.info(f"evaluate: {evaluate}")
     action = (
         ACTIVE
         if thermostat_action == IDLE and control_central_thermostat is True
         else determine_action(target_temperature, actual_temperature, hvac_mode)
     )
-    LOGGER.info(f"action: {action}")
 
     return SERVICE_CLOSE_COVER if action is not ACTIVE else SERVICE_OPEN_COVER
 
@@ -168,7 +160,6 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
         thermostat_areas = (
             bedroom_areas if is_night_time_mode and is_night_time else areas
         )
-        LOGGER.info(f"thermostat_areas: {thermostat_areas}")
         actions = [
             determine_action(
                 determine_target_temperature(hass, area),
@@ -177,7 +168,6 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             )
             for area, devices in thermostat_areas.items()
         ]
-        LOGGER.info(f"actions: {actions}")
         thermostat_action = ACTIVE if ACTIVE in actions else IDLE
         for key, values in areas.items():
             area_thermostat = hass.states.get("climate." + key + "_thermostat")
@@ -227,16 +217,6 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             )
 
 
-def log_event(data):
-    """Log event."""
-    LOGGER.info(
-        f"\nentity_id: {data['entity_id']}"
-        + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
-        + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
-        + "\n--------------------------------------------------------"
-    )
-
-
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up HVAC Zoning from a config entry."""
 
@@ -266,7 +246,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             and data["old_state"].state == STATE_OFF
             and data["new_state"].state == STATE_ON
         ):
-            log_event(data)
+            LOGGER.info(
+                f"\nentity_id: {data['entity_id']}"
+                + (f"\nold_state: {data['old_state']}" if "old_state" in data else "")
+                + (f"\nnew_state: {data['new_state']}" if "new_state" in data else "")
+                + "\n--------------------------------------------------------"
+            )
             adjust_house(hass, config_entry)
 
     config_entry.async_on_unload(
