@@ -161,6 +161,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
         thermostat_areas = (
             bedroom_areas if is_night_time_mode and is_night_time else areas
         )
+        LOGGER.info(f"thermostat_areas: {thermostat_areas}")
         actions = [
             determine_action(
                 determine_target_temperature(hass, area),
@@ -169,6 +170,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
             )
             for area, devices in thermostat_areas.items()
         ]
+        LOGGER.info(f"actions: {actions}")
         thermostat_action = ACTIVE if ACTIVE in actions else IDLE
         for key, values in areas.items():
             area_thermostat = hass.states.get("climate." + key + "_thermostat")
