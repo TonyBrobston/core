@@ -54,8 +54,11 @@ def determine_action(target_temperature: int, actual_temperature: int, hvac_mode
         and target_temperature is not None
         and actual_temperature is not None
     ):
+        LOGGER.info(f"hvac_mode: {hvac_mode}")
         modified_actual_temperature = int(float(actual_temperature))
         modified_target_temperature = int(float(target_temperature))
+        LOGGER.info(f"modified_actual_temperature: {modified_actual_temperature}")
+        LOGGER.info(f"modified_target_temperature: {modified_target_temperature}")
         match hvac_mode:
             case HVACMode.HEAT:
                 if modified_actual_temperature >= modified_target_temperature:
@@ -98,11 +101,13 @@ def determine_cover_service_to_call(
     """Determine cover service."""
     if is_night_time_mode and is_night_time:
         return SERVICE_OPEN_COVER if is_bedroom else SERVICE_CLOSE_COVER
+    LOGGER.info(f"thermostat_action: {thermostat_action}")
     action = (
         ACTIVE
         if thermostat_action == IDLE
         else determine_action(target_temperature, actual_temperature, hvac_mode)
     )
+    LOGGER.info(f"action: {action}")
 
     return SERVICE_CLOSE_COVER if action is not ACTIVE else SERVICE_OPEN_COVER
 
