@@ -97,6 +97,7 @@ def determine_cover_service_to_call(
     is_night_time_mode: bool,
     is_night_time: bool,
     is_bedroom: bool,
+    control_central_thermostat: bool,
 ) -> str:
     """Determine cover service."""
     if is_night_time_mode and is_night_time:
@@ -104,7 +105,7 @@ def determine_cover_service_to_call(
     LOGGER.info(f"thermostat_action: {thermostat_action}")
     action = (
         ACTIVE
-        if thermostat_action == IDLE
+        if thermostat_action == IDLE and not control_central_thermostat
         else determine_action(target_temperature, actual_temperature, hvac_mode)
     )
     LOGGER.info(f"action: {action}")
@@ -158,6 +159,9 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
         is_night_time = determine_is_night_time(
             config_entry_data["bed_time"], config_entry_data["wake_time"]
         )
+        control_central_thermostat = config_entry_data.get(
+            "control_central_thermostat", False
+        )
         thermostat_areas = (
             bedroom_areas if is_night_time_mode and is_night_time else areas
         )
@@ -191,6 +195,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
                     is_night_time_mode,
                     is_night_time,
                     is_bedroom,
+                    control_central_thermostat,
                 )
                 covers = values["covers"]
                 LOGGER.info(
@@ -204,7 +209,7 @@ def adjust_house(hass: HomeAssistant, config_entry: ConfigEntry):
                         service_to_call,
                         service_data={ATTR_ENTITY_ID: cover},
                     )
-        if config_entry_data.get("control_central_thermostat", False):
+        if control_central_thermostat:
             hass.services.call(
                 Platform.CLIMATE,
                 SERVICE_SET_TEMPERATURE,
