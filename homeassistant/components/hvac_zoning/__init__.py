@@ -108,15 +108,19 @@ def determine_cover_service_to_call(
     return SERVICE_CLOSE_COVER if action is not ACTIVE else SERVICE_OPEN_COVER
 
 
-def determine_change_in_temperature(target_temperature, hvac_mode, action):
-    """Determine change in temperature."""
-    if action == ACTIVE and hvac_mode in SUPPORTED_HVAC_MODES:
+def determine_change_in_temperature(
+    actual_temperature: float, hvac_mode: HVACMode, action: str
+) -> float:
+    """Determine change in temperature based on HVAC mode and action."""
+    if hvac_mode in SUPPORTED_HVAC_MODES:
         match hvac_mode:
             case HVACMode.HEAT:
-                return target_temperature + 2
+                difference_in_temperature = 2 if action == ACTIVE else -2
+                return actual_temperature + difference_in_temperature
             case HVACMode.COOL:
-                return target_temperature - 2
-    return target_temperature
+                difference_in_temperature = -2 if action == ACTIVE else 2
+                return actual_temperature + difference_in_temperature
+    return actual_temperature
 
 
 def determine_target_temperature(hass: HomeAssistant, area):

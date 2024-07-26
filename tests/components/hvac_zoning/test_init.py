@@ -200,21 +200,22 @@ def test_determine_cover_service_to_call(
 
 
 @pytest.mark.parametrize(
-    ("target_temperature", "hvac_mode", "action", "expected_change_in_temperature"),
+    ("actual_temperature", "hvac_mode", "action", "expected_change_in_temperature"),
     [
         (68, HVACMode.HEAT, ACTIVE, 70),
         (68, HVACMode.COOL, ACTIVE, 66),
         (68, HVACMode.OFF, ACTIVE, 68),
-        (68, HVACMode.HEAT, IDLE, 68),
+        (68, HVACMode.HEAT, IDLE, 66),
+        (68, HVACMode.COOL, IDLE, 70),
         (68, HVACMode.HEAT_COOL, ACTIVE, 68),
     ],
 )
 def test_determine_change_in_temperature(
-    target_temperature, hvac_mode, action, expected_change_in_temperature
+    actual_temperature, hvac_mode, action, expected_change_in_temperature
 ) -> None:
     """Test determine change in temperature."""
     change_in_temperature = determine_change_in_temperature(
-        target_temperature, hvac_mode, action
+        actual_temperature, hvac_mode, action
     )
     assert change_in_temperature == expected_change_in_temperature
 
@@ -305,7 +306,7 @@ async def test_adjust_house(hass: HomeAssistant) -> None:
     )
     hass.states.async_set(
         entity_id=central_thermostat_entity_id,
-        new_state="heat",
+        new_state=HVACMode.HEAT,
         attributes={
             "current_temperature": 68,
         },
@@ -362,7 +363,7 @@ async def test_adjust_house_control_central_thermostat_false(
     )
     hass.states.async_set(
         entity_id=central_thermostat_entity_id,
-        new_state="heat",
+        new_state=HVACMode.HEAT,
         attributes={
             "current_temperature": 68,
         },
@@ -408,7 +409,7 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
     )
     hass.states.async_set(
         entity_id=central_thermostat_entity_id,
-        new_state="heat",
+        new_state=HVACMode.HEAT,
         attributes={
             "current_temperature": 68,
         },
@@ -477,7 +478,7 @@ async def test_async_setup_entry_damper_wake(hass: HomeAssistant) -> None:
     )
     hass.states.async_set(
         entity_id=central_thermostat_entity_id,
-        new_state="heat",
+        new_state=HVACMode.HEAT,
         attributes={
             "current_temperature": 68,
         },
@@ -538,7 +539,7 @@ async def test_async_setup_entry_damper_open(hass: HomeAssistant) -> None:
     )
     hass.states.async_set(
         entity_id=central_thermostat_entity_id,
-        new_state="heat",
+        new_state=HVACMode.HEAT,
         attributes={
             "current_temperature": 68,
         },
